@@ -7,11 +7,11 @@ import { getUserBlockList, updateUserBlockList } from '../../../server/db/blockl
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || !session.user) {
     return NextResponse.json({ error: 'Not Authenticated' }, { status: 401 });
   }
   try {
-    const blockList = await getUserBlockList(session.user.id);
+    const blockList = await getUserBlockList((session.user as { id: string }).id);
     return NextResponse.json({ blockList });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to load block list' }, { status: 500 });
@@ -20,13 +20,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session || !session.user) {
     return NextResponse.json({ error: 'Not Authenticated' }, { status: 401 });
   }
   try {
     const body = await req.json();
     const { blockList } = body;
-    await updateUserBlockList(session.user.id, blockList);
+    await updateUserBlockList((session.user as { id: string }).id, blockList);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update block list' }, { status: 500 });
