@@ -7,6 +7,7 @@ import { saveCanvasKey } from "~/server/actions/canvas";
 import { CanvasKeyForm } from "~/components/CanvasKeyForm";
 export default async function Home() {
   const session = await auth();
+  console.log("Session:", session);
   return (
     <HydrateClient>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">

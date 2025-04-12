@@ -1,4 +1,4 @@
-import type { DefaultSession, NextAuthConfig } from "next-auth";
+import type { DefaultSession, NextAuthOptions } from "next-auth";
 import Google from "next-auth/providers/google";
 import { env } from "~/env";
 
@@ -60,4 +60,4 @@ export const authConfig = {
 			return session;
 		},
 	},
-} satisfies NextAuthConfig;
+} satisfies NextAuthOptions;
