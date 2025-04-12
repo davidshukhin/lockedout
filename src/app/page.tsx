@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 
 import { LatestPost } from "~/app/_components/post";
@@ -8,59 +7,52 @@ import { saveCanvasKey } from "~/server/actions/canvas";
 import { CanvasKeyForm } from "~/components/CanvasKeyForm";
 export default async function Home() {
   const session = await auth();
+  console.log("Session:", session);
   return (
     <HydrateClient>
       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
         {session?.user ? (
           // Signed-in user view
-
-          <div className="container max-w-7xl flex flex-col gap-12 px-4 py-16">
-            {/* Welcome message */}
-            <h1 className="text-center font-extrabold text-5xl tracking-tight sm:text-[5rem] text-white">
+          <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+            <h1 className="font-extrabold text-5xl tracking-tight sm:text-[5rem]">
               Welcome back,{" "}
               <span className="text-[hsl(280,100%,70%)]">{session.user.name}</span>
             </h1>
-
-            {/* Navigation cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
               <Link
-                className="flex flex-col gap-4 rounded-xl bg-white/10 p-6 hover:bg-white/20 transition"
+                className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
                 href="/dashboard"
               >
                 <h3 className="font-bold text-2xl">Dashboard →</h3>
-                <p className="text-lg text-white/80">
+                <div className="text-lg">
                   View your personalized dashboard and manage your account.
-                </p>
+                </div>
               </Link>
               <Link
-                className="flex flex-col gap-4 rounded-xl bg-white/10 p-6 hover:bg-white/20 transition"
+                className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
                 href="/profile"
               >
                 <h3 className="font-bold text-2xl">Profile →</h3>
-                <p className="text-lg text-white/80">
+                <div className="text-lg">
                   Update your profile information and preferences.
-                </p>
+                </div>
               </Link>
             </div>
-
-            {/* Canvas Key Form */}
-            <div className="w-full">
-              <CanvasKeyForm />
-            </div>
-
-            {/* Sign out */}
-            <form
-              action={async () => {
-                "use server";
-                await signOut();
-              }}
-            >
-              <div className="flex justify-center mt-8">
-                <button className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white hover:bg-white/20 transition">
+            <div className="flex flex-col items-center gap-4">
+              <div className='w-full max-w-md' >
+                <CanvasKeyForm />
+              </div>
+              <form
+                action={async () => {
+                  "use server";
+                  await signOut();
+                }}
+              >
+                <button className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20">
                   Sign out
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         ) : (
           // Signed-out user view
@@ -110,4 +102,3 @@ export default async function Home() {
     </HydrateClient>
   );
 }
-
