@@ -8,7 +8,7 @@ import { createClient } from '@supabase/supabase-js';
  // NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
  // SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 //
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
