@@ -5,17 +5,24 @@ import { useState, useEffect } from "react";
 import type { Assignment } from "../../types/assignments";
 import { saveCanvasKey } from "~/server/actions/canvas";
 import { AssignmentList } from "./AssignmentList";
+import { useAssignmentStore } from "stores/assignmentStore";
+
 export function CanvasKeyForm() {
   const [canvasKey, setCanvasKey] = useState("");
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const assignments = useAssignmentStore((state) => state.assignments);
+  const setAssignments = useAssignmentStore((state) => state.setAssignments);
   const [linkedCanvas, setLinkedCanvas] = useState<boolean>(false);
-  useEffect(() => {
-    const canvasKey = localStorage.getItem("canvasKey");
-    if (canvasKey) {
-      setLinkedCanvas(true);
-    }
 
-  }, [canvasKey])
+  useEffect(() => {
+    const existingKey = localStorage.getItem("canvasKey");
+    if (existingKey) {
+      setCanvasKey(existingKey);
+      setLinkedCanvas(true);
+      // Automatically fetch assignments
+      saveKey.mutate({ canvasKey: existingKey });
+    }
+  }, []); // ← don't forget the empty dependency array
+
 
   const saveKey = api.canvas.saveKey.useMutation({
     onSuccess(data) {
@@ -46,7 +53,7 @@ export function CanvasKeyForm() {
 
   return (<>
     {
-      linkedCanvas ? (
+      !linkedCanvas ? (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" >
           {/*action={async (formData) => {
       "use server";
