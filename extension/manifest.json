@@ -3,9 +3,9 @@
     "name": "LockedOut Chrome Extension",
     "version": "1.0",
     "description": "Blocks distracting websites.",
-    "permissions": ["tabs", "webRequest", "webRequestBlocking"],
+    "permissions": ["tabs", "webRequest", "webRequestBlocking", "declarativeNetRequest", "declarativeNetRequestWithHostAccess", "storage"],
     "background": {
-      "service_worker": "background.js"
+      "service_worker": "background.tsx"
     },
     "host_permissions": ["<all_urls>"],
     "action": {
@@ -16,6 +16,13 @@
       "16": "icon.png",
       "48": "icon.png",
       "128": "icon.png"
+    },
+    "declarative_net_request": {
+      "rule_resources": [{
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }]
     }
   }
   
