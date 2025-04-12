@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { LatestPost } from "~/app/_components/post";
-import { auth } from "~/server/auth";
+import { auth, signIn, signOut } from "~/server/auth";
 import { HydrateClient, api } from "~/trpc/server";
 
 export default async function Home() {
@@ -52,12 +52,20 @@ export default async function Home() {
 							<p className="text-center text-2xl text-white">
 								{session && <span>Logged in as {session.user?.name}</span>}
 							</p>
-							<Link
-								href={session ? "/api/auth/signout" : "/api/auth/signin"}
-								className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
+							<form
+								action={async () => {
+									"use server";
+									if (session) {
+										await signOut();
+									} else {
+										await signIn();
+									}
+								}}
 							>
-								{session ? "Sign out" : "Sign in"}
-							</Link>
+								<button className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20">
+									{session ? "Sign out" : "Sign in"}
+								</button>
+							</form>
 						</div>
 					</div>
 
