@@ -5,19 +5,16 @@ import { auth } from "~/server/auth";
 
 export async function saveCanvasKey(canvasKey: string) {
 	const session = await auth();
+	console.log(session?.user.id)
 	if (!session?.user) {
 		throw new Error("Not authenticated");
 	}
 
-	const { error } = await supabase
-		.from("userSettings")
-		.upsert({
-			userId: session.user.id,
-			canvasAccessKey: canvasKey,
-			updatedAt: new Date().toISOString(),
-		});
+	await supabase.from("canvas_tokens").upsert({
+		user_id: session.user.id,
+		access_token: canvasKey,
+	  });
 
-	if (error) {
-		throw error;
-	}
+	  return canvasKey;
+
 } 

@@ -40,33 +40,35 @@ export default async function Home() {
 						</div>
 						<div className="flex flex-col items-center gap-4">
 							<div className="w-full max-w-md">
-								<form
-									action={async (formData) => {
-										"use server";
-										const canvasKey = formData.get("canvasKey");
-										if (canvasKey) {
-											await saveCanvasKey(canvasKey.toString());
-										}
-									}}
-									className="flex flex-col gap-4"
+							<form
+								action={async (formData) => {
+									"use server";
+									const canvasKey = formData.get("canvasKey")?.toString();
+									if (canvasKey && canvasKey !== "canvasKey") {
+									await saveCanvasKey(canvasKey);
+									}
+								}}
+								className="flex flex-col gap-4"
 								>
-									<label htmlFor="canvasKey" className="text-lg font-semibold">
-										Canvas Access Key
-									</label>
-									<input
-										type="password"
-										id="canvasKey"
-										name="canvasKey"
-										placeholder="Enter your Canvas access key"
-										className="rounded-lg bg-white/10 px-4 py-2 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[hsl(280,100%,70%)]"
-									/>
-									<button
-										type="submit"
-										className="rounded-full bg-[hsl(280,100%,70%)] px-6 py-2 font-semibold text-black no-underline transition hover:bg-[hsl(280,100%,80%)]"
-									>
-										Save Key
-									</button>
+								<label htmlFor="canvasKey" className="text-lg font-semibold">
+									Canvas Access Key
+								</label>
+								<input
+									type="password"
+									id="canvasKey"
+									name="canvasKey"
+									placeholder="Enter your Canvas access key"
+									className="rounded-lg bg-white/10 px-4 py-2 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[hsl(280,100%,70%)]"
+								/>
+								<button
+									type="submit"
+									className="rounded-full bg-[hsl(280,100%,70%)] px-6 py-2 font-semibold text-black no-underline transition hover:bg-[hsl(280,100%,80%)]"
+								>
+									Save Key
+								</button>
 								</form>
+
+
 							</div>
 							
 							<form
