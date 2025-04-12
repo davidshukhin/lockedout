@@ -49,9 +49,9 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
   }, [open]);
 
   return (
-    <div className="w-full max-w-3xl">
+    <div className="w-full">
       {title && <h2 className="mb-4 text-xl font-bold">{title}</h2>}
-      <ul className="space-y-3">
+      <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {assignments.map((assignment, i) => (
           <li
             key={`${assignment.name}-${i}`}
