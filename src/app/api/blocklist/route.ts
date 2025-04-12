@@ -3,20 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/options';
-
-/*
-This file exports functions to get and update the user's block list.
-Please implement the functions as needed.
-*/
-
-export async function getUserBlockList(userId: string): Promise<any[]> {
-  // Replace with actual implementation
-  return [];
-}
-
-export async function updateUserBlockList(userId: string, blockList: any[]): Promise<void> {
-  // Replace with actual implementation
-}
+import { getUserBlockList, updateUserBlockList } from '../../../server/db/blocklist';
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
