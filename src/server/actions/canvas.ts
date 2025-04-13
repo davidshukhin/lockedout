@@ -178,6 +178,7 @@ export async function saveCanvasKey(canvasKey: string) {
             course: courseName as string,
             id: assignment.id as number,
             course_id: assignment.course_id as number,
+            //scheduled_time : new Date() as Date,
           }
           const turnedIn = assignment.has_submitted_submissions;
 

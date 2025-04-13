@@ -17,7 +17,9 @@ type CurrentAssignmentRow = {
     const { data, error } = await supabase
       .from("current_assignments")
       .select("assignment_id, course_id")
-      .eq("access_key", session?.user?.id);
+      .eq("access_key", session?.user?.id)
+      .lte("scheduled_time", new Date().toISOString()); 
+
   
     if (error || !data) {
       console.error("Error fetching assignments:", error);
