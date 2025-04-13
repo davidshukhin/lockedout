@@ -1,121 +1,94 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #1e2a32;
-    font-family: 'Arial', sans-serif;
-    color: #fff;
+    min-height: 100vh;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-  }
-  
-  .block-screen {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: #fff;
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
     text-align: center;
-    max-width: 600px;
-    margin: 2rem;
-    padding: 2rem;
-    background-color: #2c3e50;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .icon {
-    font-size: 4em;
-    margin-bottom: 1rem;
-  }
-  
-  .block-title {
-    font-size: 2em;
-    margin-bottom: 1rem;
-    color: #e74c3c;
-  }
-  
-  .site-info {
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-  }
-  
-  .user-context {
-    color: #3498db;
-    margin-bottom: 1rem;
-  }
-  
-  .block-list-context {
-    text-align: left;
-    margin: 1.5rem 0;
-    padding: 1rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-  }
-  
-  .block-list-context ul {
-    list-style: none;
-    padding-left: 0;
-  }
-  
-  .block-list-context li {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .stats {
-    margin: 1.5rem 0;
-    font-size: 0.9em;
-    color: #95a5a6;
-  }
-  
-  .quote-container {
-    margin: 2rem 0;
-    padding: 1rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-  }
-  
-  .quote-title {
-    font-size: 1.2em;
-    margin-bottom: 0.5rem;
-    color: #2ecc71;
-  }
-  
-  .quote-subtitle {
-    font-size: 1em;
-    color: #95a5a6;
-  }
-  
-  .actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin-top: 2rem;
-  }
-  
-  .action-button {
-    padding: 0.8rem 1.5rem;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.block-screen {
+    text-align: center;
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
     border: none;
-    border-radius: 6px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .action-button.primary {
-    background-color: #3498db;
-    color: white;
-  }
-  
-  .action-button.primary:hover {
-    background-color: #2980b9;
-  }
-  
-  .action-button.secondary {
-    background-color: #95a5a6;
-    color: white;
-  }
-  
-  .action-button.secondary:hover {
-    background-color: #7f8c8d;
-  }
+}
+
+.icon {
+    font-size: 15em;
+    margin-bottom: 0.5rem;
+    animation: floatIcon 3s ease-in-out infinite;
+    text-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    display: block;
+    background: transparent;
+    width: 100%;
+}
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+.quote-container {
+    border: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-radius: 0;
+}
+
+.quote-title {
+    font-size: 4.5em;
+    margin: 0 0 0.5rem 0;
+    font-weight: 800;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    line-height: 1.2;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    width: 100%;
+    max-width: 90%;
+}
+
+.quote-subtitle {
+    font-size: 2.5em;
+    color: rgba(255,255,255,0.95);
+    line-height: 1.4;
+    margin: 0.5rem 0 0 0;
+    font-weight: 500;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    width: 100%;
+    max-width: 90%;
+}
+
+/* Hide all other elements */
+.site-info,
+.user-context,
+.block-list-context,
+.stats,
+.actions,
+.block-title {
+    display: none;
+}
   

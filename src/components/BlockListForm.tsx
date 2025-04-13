@@ -10,6 +10,15 @@ export function BlockListForm() {
   const [submitting, setSubmitting] = useState(false);
   const { data: session, status } = useSession();
 
+  const standardizeDomain = (url: string): string => {
+    // Remove protocol and www
+    let domain = url.replace(/^(https?:\/\/)?(www\.)?/, '');
+    // Remove trailing slashes and spaces
+    domain = domain.replace(/\/+$/, '').trim();
+    // Convert to lowercase
+    return domain.toLowerCase();
+  };
+
   useEffect(() => {
     const fetchBlockList = async () => {
       // Don't fetch if not authenticated
@@ -36,13 +45,24 @@ export function BlockListForm() {
 
   const addSite = async () => {
     if (!newSite.trim()) return;
+    
+    const standardizedDomain = standardizeDomain(newSite);
+    if (!standardizedDomain) return;
+
+    // Check if domain is already in the list
+    if (blockList.includes(standardizedDomain)) {
+      alert('This site is already in your block list.');
+      setNewSite('');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       const response = await fetch('/api/blocklist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'add', site: newSite.trim() }),
+        body: JSON.stringify({ action: 'add', site: standardizedDomain }),
       });
 
       if (response.ok) {

@@ -650,3 +650,100 @@ document.addEventListener("DOMContentLoaded", async () => {
 function playOn() {
   alert("Maybe try something beneficial? Practice an instrument, take a walk, or read a book!");
 }
+
+// Get DOM elements
+const blockedSiteInfo = document.getElementById('blockedSiteInfo');
+const quoteTitle = document.getElementById('quoteTitle');
+const quoteSubtitle = document.getElementById('quoteSubtitle');
+const iconDisplay = document.getElementById('iconDisplay');
+const unblockButton = document.getElementById('unblockButton');
+const blockCount = document.getElementById('blockCount');
+
+// Get current URL
+const currentUrl = new URL(window.location.href);
+const blockedUrl = currentUrl.searchParams.get('url') || 'unknown site';
+
+// Display blocked site info
+if (blockedSiteInfo) {
+  blockedSiteInfo.textContent = blockedUrl;
+}
+
+// Get and display random quote with animation
+function displayRandomQuote() {
+  const randomIndex = Math.floor(Math.random() * quotes.length);
+  const quote = quotes[randomIndex];
+  
+  // Initial fade state
+  if (quoteTitle) {
+    quoteTitle.style.opacity = '0';
+    quoteTitle.style.transform = 'translateY(20px)';
+  }
+  
+  if (quoteSubtitle) {
+    quoteSubtitle.style.opacity = '0';
+    quoteSubtitle.style.transform = 'translateY(20px)';
+  }
+  
+  // Wait for fade out, then update and fade in
+  setTimeout(() => {
+    if (quoteTitle) {
+      quoteTitle.textContent = quote.title;
+      quoteTitle.style.opacity = '1';
+      quoteTitle.style.transform = 'translateY(0)';
+    }
+    
+    if (quoteSubtitle) {
+      quoteSubtitle.textContent = quote.quote;
+      quoteSubtitle.style.opacity = '1';
+      quoteSubtitle.style.transform = 'translateY(0)';
+    }
+    
+    if (iconDisplay) {
+      iconDisplay.style.transform = 'scale(0.8)';
+      iconDisplay.textContent = quote.icon;
+      // Trigger bounce animation
+      setTimeout(() => {
+        iconDisplay.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+          iconDisplay.style.transform = 'scale(1)';
+        }, 150);
+      }, 50);
+    }
+  }, 300);
+}
+
+// Add transition styles
+document.addEventListener('DOMContentLoaded', () => {
+  if (quoteTitle) {
+    quoteTitle.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  }
+  
+  if (quoteSubtitle) {
+    quoteSubtitle.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  }
+  
+  if (iconDisplay) {
+    iconDisplay.style.transition = 'transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+  }
+  
+  // Initial display
+  displayRandomQuote();
+});
+
+// Change quote every minute with animation
+setInterval(displayRandomQuote, 60000);
+
+// Handle unblock button
+if (unblockButton) {
+  unblockButton.addEventListener('click', () => {
+    // Open the extension popup or options page
+    chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' });
+  });
+}
+
+// Update block count
+chrome.storage.local.get(['blockCount'], (result) => {
+  const count = (result.blockCount || 0) + 1;
+  chrome.storage.local.set({ blockCount: count });
+  if (blockCount) blockCount.textContent = count.toString();
+});

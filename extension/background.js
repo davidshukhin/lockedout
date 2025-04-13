@@ -155,7 +155,7 @@ async function updateBlockingRules(domains) {
         action: {
           type: "redirect",
           redirect: {
-            url: chrome.runtime.getURL("/blocked.html")
+            url: chrome.runtime.getURL("/blocked.html") + "?url=" + encodeURIComponent(cleanDomain)
           }
         },
         condition: {
