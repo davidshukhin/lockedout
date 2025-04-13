@@ -156,10 +156,8 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
         .insert({
           user_id: session.user.id,
           assignment_id: selectedAssignment.id,
-        course_id: selectedAssignment?.course_id,
-       
           access_key: localStorage.getItem("canvasKey"),
-        scheduled_time: scheduledDateTime.toISOString(),
+          scheduled_time: scheduledDateTime.toISOString(),
           course_id: selectedAssignment.course_id
         })
         .select();
@@ -334,14 +332,13 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
               </div>
             </div>
           </div>
-          <div 
-          className="flex flex-col justify-center items-center gap-4">
-          <DialogFooter className="mt-6 flex-col justify-cente items-center gap-4">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={lockOut}>Confirm</Button>
-          </DialogFooter>
+          <div className="flex flex-col justify-center items-center gap-4">
+            <DialogFooter className="mt-6 flex flex-col items-center gap-4">
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={lockOut}>Confirm</Button>
+            </DialogFooter>
           </div>
         </DialogContent>
       </Dialog>
