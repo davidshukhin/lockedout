@@ -31,28 +31,39 @@ export async function updateUserBlockList(userId: string, newSite: string): Prom
     // Not just a missing row error
     throw fetchError;
   }
+  if (!data) {
+    const { data, error: upsertError } = await supabase
+      .from('user_blocklists')
+      .insert({
+        user_id: userId,
+        block_list: [newSite],
+      })
+      .eq("user_id", userId);
 
-  const existing = data?.block_list ?? [];
+    return [newSite];
+  } else {
+    const existing = data?.block_list ?? [];
 
-  // Prevent duplicate entries
-  if (existing.includes(newSite)) return existing;
+    // Prevent duplicate entries
+    if (existing.includes(newSite)) return existing;
 
-  const updatedList = [...existing, newSite];
+    const updatedList = [...existing, newSite];
 
-  const { error: upsertError } = await supabase
-    .from('user_blocklists')
-    .update({
-      user_id: userId,
-      block_list: updatedList,
-    })
-    .eq("user_id", userId);
+    const { error: upsertError } = await supabase
+      .from('user_blocklists')
+      .update({
+        user_id: userId,
+        block_list: updatedList,
+      })
+      .eq("user_id", userId);
 
-  if (upsertError) {
-    console.error('Error updating block list:', upsertError);
-    throw upsertError;
+    if (upsertError) {
+      console.error('Error updating block list:', upsertError);
+      throw upsertError;
+    }
+    return updatedList;
   }
 
-  return updatedList;
 }
 
 export async function removeSiteFromBlockList(userId: string, siteToRemove: string): Promise<string[]> {

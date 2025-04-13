@@ -20,15 +20,21 @@ const walkthroughSteps: WalkthroughStep[] = [
   },
   {
     src: "/images/step2.png",
-    alt: "Step 2: Open API Settings",
+    alt: "Step 2: Create Access Token",
     description:
-      "Step 2: In the settings menu, click on the API section to view your access keys.",
+      "Step 2: In the settings menu, click on \"New Access Token\"",
   },
   {
     src: "/images/step3.png",
-    alt: "Step 3: View Your Access Key",
+    alt: "Step 3: Generate Key",
     description:
-      "Step 3: Your Canvas Access Key is shown here. Copy the key to use it in the application.",
+      "Step 3: Enter a purpose for the key and select \"Generate Token\""
+  },
+  {
+    src: "/images/step4.png",
+    alt: "Step 4: Copy Your Access Key",
+    description:
+      "Step 4: Your Canvas Access Key is shown here. Copy the key and paste it in here.",
   },
 ];
 
@@ -55,14 +61,14 @@ export default function CanvasWalkthrough() {
 
       <div className="relative w-full h-80 mb-4">
         <Image
-          src={walkthroughSteps[currentStep].src}
-          alt={walkthroughSteps[currentStep].alt}
+          src={walkthroughSteps[currentStep]?.src || ""}
+          alt={walkthroughSteps[currentStep]?.alt || ""}
           fill
           className="object-contain rounded-md"
         />
       </div>
 
-      <p className="text-center mb-4">{walkthroughSteps[currentStep].description}</p>
+      <p className="text-center mb-4">{walkthroughSteps[currentStep]?.description || ""}</p>
 
       <div className="flex justify-between">
         <button
