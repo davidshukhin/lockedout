@@ -170,29 +170,30 @@ export async function saveCanvasKey(canvasKey: string) {
 
 
         for (const assignment of filteredAssignments) {
-          
+
           const a: Assignment = {
             name: assignment.name as string,
             due_date: assignment.due_at as string,
             //lock_time: assignment.lock_at as string,
             course: courseName as string,
-            id: assignment.id as number
+            id: assignment.id as number,
+            course_id: assignment.course_id as number,
           }
           const turnedIn = assignment.has_submitted_submissions;
 
           //console.log(`  Assignment: ${assignmentName} (ID: ${assignmentId})`);
           //console.log(`    Due Date: ${dueDate}`);
           //console.log(`    Turned In: ${turnedIn ? "Yes" : "No"}`);
-          const dt : Date = new Date(assignment.due_at);
-          const now : Date = new Date();
+          const dt: Date = new Date(assignment.due_at);
+          const now: Date = new Date();
           if ((!assignment.has_submitted_submissions) && (now < dt)) {
             unsubmitted.push(a);
-          } 
+          }
         }
       }
     }
 
-    unsubmitted.sort((a,b)=>new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+    unsubmitted.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
     console.log("unsubmitted assignments", unsubmitted)
 
     return { submitted, unsubmitted };

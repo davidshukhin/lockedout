@@ -3,4 +3,5 @@ export type Assignment = {
   due_date: string;
   course: string;
   id: number;
+  course_id: number;
 }
