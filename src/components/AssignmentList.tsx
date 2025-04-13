@@ -161,13 +161,16 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
           course_id: selectedAssignment.course_id
         })
         .select();
-
+        
       if (error) {
         toast.error("Failed to lock assignment");
         return;
       }
+      
 
       setCurrentAssignments(prev => [...prev, data[0] as CurrentAssignment]);
+      setOpen(false);
+      toast("Assignment locked in");
     } catch (err) {
       console.error('Error locking assignment:', err);
       toast.error("Failed to lock assignment");
