@@ -8,7 +8,7 @@ export async function getUserBlockList(userId: string): Promise<string[]> {
     .select('block_list')
     .eq('user_id', userId)
     .single();
-
+  console.log("user_id", userId)
   if (error) {
     console.error('Error fetching block list:', error);
     return [];

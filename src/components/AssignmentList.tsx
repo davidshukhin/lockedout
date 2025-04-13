@@ -13,6 +13,8 @@ import {
 import type { Assignment } from "../../types/assignments";
 import { createClient } from "@supabase/supabase-js";
 import { toast } from 'sonner';
+
+import { useSession } from "next-auth/react";
 const supabase = createClient(
   'https://rskjrsazcyckwkeoxcch.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJza2pyc2F6Y3lja3drZW94Y2NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ0MzYzNzksImV4cCI6MjA2MDAxMjM3OX0.0Ic91nz833pqSsg3h_NgpRlX6csaMyVFD9cIMEwBHek'
 );
@@ -32,21 +34,29 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [blockRules, setBlockRules] = useState<BlockRule[]>([]);
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
 
   useEffect(() => {
-    if (open && blockRules.length === 0) {
+    if (open && session?.user?.id) {
+      console.log("Fetching block rules for user", session.user.id);
+
       supabase
-        .from("block_rules")
+        .from("user_blocklists")
         .select("*")
+        .eq("user_id", session.user.id)
         .then(({ data, error }) => {
           if (error) {
-            toast("set websites to block");
+            toast("Failed to fetch block rules");
+            console.error(error);
           } else {
+            console.log("Fetched block rules:", data);
             setBlockRules(data ?? []);
           }
         });
     }
-  }, [open]);
+  }, [open, session?.user?.id]); // 👈 updated deps
+
+
 
   return (
     <div className="w-full">
@@ -78,6 +88,8 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
             <DialogTitle>Assign Block Rule</DialogTitle>
             <DialogDescription>
               Select a rule for <strong>{selectedAssignment?.name}</strong>
+
+
             </DialogDescription>
           </DialogHeader>
 
