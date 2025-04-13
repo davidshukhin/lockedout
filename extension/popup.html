@@ -1,67 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>LockedOut</title>
+  <title>LockedOut Configuration</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
       width: 300px;
-      height: 280px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9f9f9;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
+      padding: 16px;
+      font-family: system-ui, -apple-system, sans-serif;
     }
-
-    .header {
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    input {
       width: 100%;
-      background-color: #f3f3f3;
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
     }
-
-    .header img {
-      width: 50px;
-      height: 50px;
-      margin-left: 10px;
-      margin-right: 5px;
+    button {
+      width: 100%;
+      padding: 8px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
     }
-
-    .header span {
-      color: #003252;
-      font-size: 1.5rem;
-      font-weight: bold;
+    button:hover {
+      background-color: #45a049;
     }
-
-    .content {
-      margin-top: 20px;
-      padding: 0 16px;
-      text-align: center;
+    .status {
+      margin-top: 16px;
+      padding: 8px;
+      border-radius: 4px;
+      display: none;
     }
-
-    .content p {
-      font-size: 0.95rem;
-      margin: 8px 0 0;
+    .success {
+      background-color: #dff0d8;
+      color: #3c763d;
+      border: 1px solid #d6e9c6;
+    }
+    .error {
+      background-color: #f2dede;
+      color: #a94442;
+      border: 1px solid #ebccd1;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <img src="icon.png" alt="Logo" />
-    <span>LockedOut</span>
-  </div>
-
-  <div class="content">
-    <button id="signInBtn" style="display: none;">Sign in with Google</button>
-    <p>Sites blocked.</p>
-  </div>
-
+  <h2>LockedOut Configuration</h2>
+  <form id="configForm">
+    <div class="form-group">
+      <label for="supabaseUrl">Supabase URL:</label>
+      <input type="text" id="supabaseUrl" required>
+    </div>
+    <div class="form-group">
+      <label for="supabaseKey">Supabase Anon Key:</label>
+      <input type="password" id="supabaseKey" required>
+    </div>
+    <button type="submit">Save Configuration</button>
+  </form>
+  <div id="status" class="status"></div>
   <script src="popup.js"></script>
 </body>
 </html>
