@@ -156,38 +156,43 @@ export async function saveCanvasKey(canvasKey: string) {
       if (!assignments.length) {
         console.log("  No assignments found.");
       } else {
-        // Filter assignments for published ones with valid due dates and non-empty submission types.
+        // Filter assignments for published ones with val
+        const oneDayAgo = new Date();
+        oneDayAgo.setDate(oneDayAgo.getDate() - 7);
+
         const filteredAssignments = assignments.filter((assignment: any) =>
           assignment.published &&
           assignment.submission_types &&
-          // Check that submission_types array is not just ['none']
           JSON.stringify(assignment.submission_types) !== JSON.stringify(["none"]) &&
-          assignment.due_at != null
+          assignment.due_at &&
+          new Date(assignment.due_at) > oneDayAgo
         );
 
-        for (const assignment of filteredAssignments) {
 
+        for (const assignment of filteredAssignments) {
+          
           const a: Assignment = {
             name: assignment.name as string,
             due_date: assignment.due_at as string,
+            //lock_time: assignment.lock_at as string,
             course: courseName as string,
+            id: assignment.id as number
           }
           const turnedIn = assignment.has_submitted_submissions;
 
           //console.log(`  Assignment: ${assignmentName} (ID: ${assignmentId})`);
           //console.log(`    Due Date: ${dueDate}`);
           //console.log(`    Turned In: ${turnedIn ? "Yes" : "No"}`);
-
-          if (assignment.has_submitted_submissions) {
-            submitted.push(a);
-          } else {
+          const dt : Date = new Date(assignment.due_at);
+          const now : Date = new Date();
+          if ((!assignment.has_submitted_submissions) && (now < dt)) {
             unsubmitted.push(a);
-          }
+          } 
         }
-
       }
     }
 
+    unsubmitted.sort((a,b)=>new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
     console.log("unsubmitted assignments", unsubmitted)
 
     return { submitted, unsubmitted };

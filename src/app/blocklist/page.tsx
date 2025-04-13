@@ -1,5 +1,3 @@
-// src/app/blocklist/page.tsx
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,29 +7,29 @@ export default function BlockListPage() {
   const [newSite, setNewSite] = useState('');
 
   useEffect(() => {
-    // Fetch the user's current block list when the page loads.
     fetch('/api/blocklist')
       .then((res) => res.json())
       .then((data) => {
-        if (data.blockList) {
-          setBlockList(data.blockList);
-        }
+        if (data.blockList) setBlockList(data.blockList);
       })
-      .catch((err) => {
-        console.error('Error fetching block list:', err);
-      });
+      .catch((err) => console.error('Error fetching block list:', err));
   }, []);
 
   const addSite = async () => {
     if (!newSite.trim()) return;
-    const updatedList = [...blockList, newSite.trim()];
+
     const response = await fetch('/api/blocklist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ blockList: updatedList })
+      body: JSON.stringify({
+        action: 'add',
+        site: newSite.trim(),
+      }),
     });
+    console.log(response)
     if (response.ok) {
-      setBlockList(updatedList);
+      const data = await response.json();
+      setBlockList(data.blockList);
       setNewSite('');
     } else {
       console.error('Failed to update block list');
@@ -39,14 +37,15 @@ export default function BlockListPage() {
   };
 
   const removeSite = async (siteToRemove: string) => {
-    const updatedList = blockList.filter((site) => site !== siteToRemove);
     const response = await fetch('/api/blocklist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ blockList: updatedList })
+      body: JSON.stringify({ action: 'remove', site: siteToRemove }),
     });
+
     if (response.ok) {
-      setBlockList(updatedList);
+      const data = await response.json();
+      setBlockList(data.blockList);
     } else {
       console.error('Failed to update block list');
     }
@@ -54,26 +53,36 @@ export default function BlockListPage() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>Manage Your Block List</h1>
-      <ul>
+      <h1 className="text-2xl font-bold mb-4">Manage Your Block List</h1>
+      <ul className="mb-4">
         {blockList.map((site, index) => (
-          <li key={index}>
-            {site}
-            <button onClick={() => removeSite(site)} style={{ marginLeft: '1rem' }}>
+          <li key={index} className="flex items-center justify-between py-1">
+            <span>{site}</span>
+            <button
+              onClick={() => removeSite(site)}
+              className="text-red-500 hover:underline"
+            >
               Remove
             </button>
           </li>
         ))}
       </ul>
-      <div>
+      <div className="flex gap-2">
         <input
           type="text"
           placeholder="Enter website (e.g., youtube.com)"
           value={newSite}
           onChange={(e) => setNewSite(e.target.value)}
+          className="border p-2 rounded"
         />
-        <button onClick={addSite}>Add Site</button>
+        <button
+          onClick={addSite}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Add Site
+        </button>
       </div>
     </div>
   );
 }
+
