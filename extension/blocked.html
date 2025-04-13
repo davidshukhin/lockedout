@@ -7,12 +7,24 @@
   </head>
   <body>
     <div class="block-screen">
-      <!-- Icon display -->
-      <div class="icon" id="iconDisplay">⏳</div>
-      <h1 class="quote-title">Loading Mindfulness...</h1>
-      <p class="quote-subtitle">Please wait...</p>
-      <p class="subtitle">Blocked Access Count: <span id="blockCount"></span></p>
-      <button class="action-button" onclick="playOn()">Play On!</button>
+      <div class="icon" id="iconDisplay">🚫</div>
+      <h1 class="block-title">Access Blocked</h1>
+      <div class="site-info">
+        <p>You attempted to visit: <strong id="blockedSiteInfo"></strong></p>
+      </div>
+      <div id="userContext" class="user-context"></div>
+      <div id="blockListContext" class="block-list-context"></div>
+      <div class="stats">
+        <p>Times you've been blocked: <span id="blockCount">0</span></p>
+      </div>
+      <div class="quote-container">
+        <p class="quote-title" id="quoteTitle"></p>
+        <p class="quote-subtitle" id="quoteSubtitle"></p>
+      </div>
+      <div class="actions">
+        <button class="action-button primary" onclick="window.history.back()">Go Back</button>
+        <button class="action-button secondary" id="unblockButton">Manage Block List</button>
+      </div>
     </div>
     <script src="blocked.js"></script>
   </body>

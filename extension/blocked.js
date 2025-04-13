@@ -552,7 +552,67 @@ function getRandomColor() {
   return color;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // Get the blocked URL from the current tab
+  const url = new URL(window.location.href);
+  const blockedUrl = url.searchParams.get('url') || 'this site';
+  
+  // Update blocked site information
+  const blockedSiteInfo = document.getElementById('blockedSiteInfo');
+  if (blockedSiteInfo) {
+    blockedSiteInfo.textContent = new URL(blockedUrl).hostname;
+  }
+
+  // Get block list and session info
+  try {
+    const storage = await chrome.storage.local.get(['BLOCK_LIST', 'AUTH_SESSION']);
+    const blockList = storage.BLOCK_LIST || [];
+    const session = storage.AUTH_SESSION;
+
+    // Update UI with user context if available
+    const userContext = document.getElementById('userContext');
+    if (userContext && session?.user) {
+      userContext.textContent = `Signed in as ${session.user.email}`;
+    }
+
+    // Update block list context
+    const blockListContext = document.getElementById('blockListContext');
+    if (blockListContext) {
+      blockListContext.innerHTML = `
+        <p>You currently have ${blockList.length} site${blockList.length === 1 ? '' : 's'} blocked:</p>
+        <ul>
+          ${blockList.map(site => `<li>${site}</li>`).join('')}
+        </ul>
+      `;
+    }
+  } catch (err) {
+    console.error('Error loading block context:', err);
+  }
+
+  // Update block count
+  const blockCount = document.getElementById('blockCount');
+  if (blockCount) {
+    let count = parseInt(localStorage.getItem('blockCount') || '0', 10);
+    count++;
+    localStorage.setItem('blockCount', count.toString());
+    blockCount.textContent = count.toString();
+  }
+
+  // Handle unblock request
+  const unblockButton = document.getElementById('unblockButton');
+  if (unblockButton) {
+    unblockButton.addEventListener('click', async () => {
+      try {
+        // Redirect to the block list management page
+        chrome.tabs.create({
+          url: 'http://localhost:3000/blocklist'
+        });
+      } catch (err) {
+        console.error('Error handling unblock:', err);
+      }
+    });
+  }
+
   // Retrieve a random quote.
   const selectedQuote = getRandomQuote();
   const title = selectedQuote.title;
@@ -575,15 +635,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const iconEl = document.getElementById("iconDisplay");
   if (iconEl) {
     iconEl.textContent = icon;
-  }
-  
-  // Update and display the block count.
-  const blockCountEl = document.getElementById("blockCount");
-  let blockCount = parseInt(localStorage.getItem("blockCount") || "0", 10);
-  blockCount++;
-  localStorage.setItem("blockCount", blockCount.toString());
-  if (blockCountEl) {
-    blockCountEl.textContent = blockCount.toString();
   }
   
   // Randomly pick one of the calm colors and apply it.
