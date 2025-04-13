@@ -8,8 +8,7 @@
       "webRequest",
       "declarativeNetRequest",
       "declarativeNetRequestWithHostAccess",
-      "storage",
-      "http://localhost:3000/"
+      "storage"
     ],
     "background": {
       "service_worker": "background.js"
