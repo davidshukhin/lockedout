@@ -16,7 +16,11 @@ export function LinkClasses() {
       setAssignments(data);
       setCanvasLinked(true);
       setShowInput(false);
+      setIsLoading(false);
     },
+    onError() {
+      setIsLoading(false);
+    }
   });
 
   useEffect(() => {
@@ -32,6 +36,7 @@ export function LinkClasses() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     localStorage.setItem("canvasKey", canvasKey);
     saveKey.mutate({ canvasKey });
   };
@@ -59,9 +64,21 @@ export function LinkClasses() {
             />
             <button
               type="submit"
-              className="rounded-full bg-[hsl(280,100%,70%)] px-6 py-2 font-semibold text-black"
+              disabled={isLoading || !canvasKey.trim()}
+              className={`rounded-full px-6 py-2 font-semibold text-black transition-all duration-200 ${
+                isLoading 
+                  ? "bg-[hsl(280,70%,70%)] cursor-not-allowed"
+                  : "bg-[hsl(280,100%,70%)] hover:bg-[hsl(280,100%,65%)] active:bg-[hsl(280,100%,60%)]"
+              }`}
             >
-              {canvasLinked ? "Replace Key" : "Save Key"}
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent"></div>
+                  <span>Saving...</span>
+                </div>
+              ) : (
+                canvasLinked ? "Replace Key" : "Save Key"
+              )}
             </button>
           </form>
           <CanvasWalkthrough />
