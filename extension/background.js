@@ -67,47 +67,60 @@ let blockedDomains = [];
 async function checkAssignments() {
   console.log("[CHECK] Starting assignment check...");
   
-  if (!supabase) {
-    console.error("[CHECK] Supabase client not initialized");
-    return false; // Don't block if client not ready
-  }
-
   try {
-    const session = await supabase.auth.getSession();
-    if (!session.data.session?.user?.id) {
-      console.log("[CHECK] No active user session");
-      return false; // Don't block if not logged in
+    // Add timestamp to avoid caching
+    const timestamp = new Date().getTime();
+    console.log("[CHECK] Fetching from /api/check-assignments...");
+    const response = await fetch(`http://localhost:3000/api/check-assignments?t=${timestamp}`, {
+      credentials: "include",
+      headers: {
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      }
+    });
+
+    if (!response.ok) {
+      console.error("[CHECK] Error fetching assignments. Status:", response.status);
+      console.error("[CHECK] Status text:", response.statusText);
+      const errorText = await response.text();
+      console.error("[CHECK] Error details:", errorText);
+      return false;
     }
 
-    console.log(`[CHECK] Checking assignments for user: ${session.data.session.user.id}`);
-    
-    const { data: assignments, error } = await supabase
-      .from("current_assignments")
-      .select("*")
-      .eq("access_key", session.data.session.user.id);
+    const data = await response.json();
+    console.log("[CHECK] Assignment check response:", {
+      shouldBlock: data.shouldBlock,
+      message: data.message,
+      fullResponse: data
+    });
 
-    if (error) {
-      console.error("[CHECK] Error fetching assignments:", error);
-      return false; // Don't block on error
-    }
-
-    // Return true if there are active assignments (should block)
-    // Return false if there are no assignments (should NOT block)
-    const hasAssignments = assignments && assignments.length > 0;
-    console.log(`[CHECK] User has ${assignments ? assignments.length : 0} active assignments`);
-    
-    if (hasAssignments) {
-      console.log("[CHECK] Active assignments found:", assignments);
-    } else {
-      console.log("[CHECK] No active assignments found, blocking should be disabled");
-    }
-    
-    return hasAssignments;
+    // Add a test call to verify it's working
+    console.log("[CHECK] Test - calling checkAssignments directly");
+    return data.shouldBlock;
   } catch (e) {
     console.error("[CHECK] Exception while checking assignments:", e);
-    return false; // Don't block on error
+    console.error("[CHECK] Stack trace:", e.stack);
+    return false;
   }
 }
+
+// Add an immediate check when the extension loads
+console.log("[BACKGROUND] Initial assignment check...");
+checkAssignments().then(shouldBlock => {
+  console.log("[BACKGROUND] Initial assignment check result:", shouldBlock);
+});
+
+// Set up periodic checks more frequently (every minute)
+chrome.alarms.create('checkAssignments', { periodInMinutes: 1 });
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'checkAssignments') {
+    console.log("[ALARM] Running periodic assignment check...");
+    checkAssignments().then(shouldBlock => {
+      console.log("[ALARM] Periodic assignment check result:", shouldBlock);
+    });
+  }
+});
 
 /**
  * Fetches and updates the blocked domains from Supabase. Blocking is only active if:
@@ -146,24 +159,26 @@ async function fetchBlockedDomains() {
 
     console.log("[FETCH] User has active assignments, fetching block list");
     const { data, error } = await supabase
-      .from('blocked_domains')
-      .select('domain')
-      .eq('user_id', session.user.id);
+      .from('user_blocklists')
+      .select('block_list')
+      .eq('user_id', session.user.id)
+      .single();
+      
 
     if (error) {
       console.error("[FETCH] Error fetching blocked domains:", error);
       return;
     }
 
-    if (!data || data.length === 0) {
+    if (!data || !data.block_list || data.block_list.length === 0) {
       console.log("[FETCH] No blocked domains found in database");
       blockedDomains = [];
       await updateBlockingRules([]);
       return;
     }
 
-    console.log("[FETCH] Found blocked domains in database:", data);
-    const domains = data.map(item => item.domain);
+    console.log("[FETCH] Found blocked domains in database:", data.block_list);
+    const domains = data.block_list;
     
     console.log("[FETCH] Processed domains for blocking:", domains);
     blockedDomains = domains;
@@ -361,16 +376,6 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   }
 }, { url: [{ schemes: ['http', 'https'] }] });
 
-// Also periodically check if assignments have been completed
-chrome.alarms.create('checkAssignments', { periodInMinutes: 1 });
-
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === 'checkAssignments') {
-    console.log("[ALARM] Checking if assignments are complete...");
-    fetchBlockedDomains(); // This will clear blocking if no assignments
-  }
-});
-
 /**
  * Test function to verify blocking functionality
  * @param {string} url - The URL to test
@@ -425,3 +430,22 @@ async function testBlockingRule(url) {
 
 // Example usage in console:
 // testBlockingRule('https://example.com')
+
+// Add this test function
+async function testAPI() {
+  try {
+    const response = await fetch('http://localhost:3000/api/check-assignments', {
+      credentials: 'include'
+    });
+    console.log('API Response Status:', response.status);
+    const data = await response.json();
+    console.log('API Response Data:', data);
+  } catch (e) {
+    console.error('API Test Error:', e);
+  }
+}
+
+// Call it on startup
+console.log("[TEST] Testing API endpoint...");
+testAPI();
+

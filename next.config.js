@@ -5,6 +5,11 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  // Tell Next.js to look in the src directory
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  // Set the source directory
+  distDir: '.next'
+};
 
 export default config;
