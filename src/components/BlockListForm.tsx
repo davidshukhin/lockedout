@@ -2,20 +2,31 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
+import { useSession } from 'next-auth/react';
+import { supabaseClient } from '~/lib/supabaseClient';
 export function BlockListForm() {
   const [blockList, setBlockList] = useState<string[]>([]);
   const [newSite, setNewSite] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [hasFetched, setHasFetched] = useState(false); // ✅ New flag
-
+  const [hasFetched, setHasFetched] = useState(false);
+  const { data: session } = useSession();
   useEffect(() => {
     const fetchBlockList = async () => {
       try {
-        const res = await fetch('/api/blocklist');
-        const data = await res.json();
-        if (data.blockList) setBlockList(data.blockList);
+
+        const { data, error } = await supabaseClient
+          .from('user_blocklists')
+          .select('block_list')
+          .eq('user_id', session?.user?.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching block list:', error);
+          return [];
+        }
+
+        setBlockList(data?.block_list);
       } catch (err) {
         console.error('Error fetching block list:', err);
       } finally {

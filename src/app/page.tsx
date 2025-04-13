@@ -2,7 +2,6 @@ import { auth, signIn, signOut } from "~/server/auth";
 import { HydrateClient } from "~/trpc/server";
 import { CanvasKeyForm } from "~/components/CanvasKeyForm";
 import { BlockListForm } from "~/components/BlockListForm"; // you must create this component
-import { AssignmentList } from "~/components/AssignmentList"; // should already exist
 import { LinkClasses } from "~/components/LinkClasses";
 export default async function Home() {
   const session = await auth();
