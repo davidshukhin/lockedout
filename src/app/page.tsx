@@ -3,10 +3,10 @@ import { HydrateClient } from "~/trpc/server";
 import { CanvasKeyForm } from "~/components/CanvasKeyForm";
 import { BlockListForm } from "~/components/BlockListForm"; // you must create this component
 import { LinkClasses } from "~/components/LinkClasses";
+import { SignOutButton } from "~/components/SignOutButton";
+
 export default async function Home() {
   const session = await auth();
-
-
 
   return (
     <HydrateClient>
@@ -19,7 +19,7 @@ export default async function Home() {
                   Welcome, <span className="text-[hsl(280,100%,70%)]">{session.user.name}</span>
                 </h1>
                 <p className="text-white/70 text-lg mt-2">
-                  Let’s focus and block out distractions while tackling your assignments.
+                  Let's focus and block out distractions while tackling your assignments.
                 </p>
               </header>
 
@@ -34,7 +34,6 @@ export default async function Home() {
                     <h2 className="text-2xl font-bold mb-4">Link Your Classes</h2>
                     <LinkClasses />
                   </section>
-
                 </div>
 
                 {/* Right: Assignment List */}
@@ -43,17 +42,9 @@ export default async function Home() {
                 </div>
               </div>
 
-              <form
-                action={async () => {
-                  "use server";
-                  await signOut();
-                }}
-                className="text-center mt-10"
-              >
-                <button className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20">
-                  Sign out
-                </button>
-              </form>
+              <div className="text-center mt-10">
+                <SignOutButton />
+              </div>
             </>
           ) : (
             <div className="text-center">
