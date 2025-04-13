@@ -71,7 +71,9 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
     const { data } = await supabase.from('current_assignments')
       .insert({
         user_id: session?.user?.id,
-        assignment_id: selectedAssignment?.id, access_key: localStorage.getItem("canvasKey")
+        assignment_id: selectedAssignment?.id,
+        access_key: localStorage.getItem("canvasKey"),
+        course_id: selectedAssignment?.course_id
       }).select()
   }
 

@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useAssignmentStore } from "stores/assignmentStore";
 import { api } from "~/trpc/react";
-
+import CanvasWalkthrough from './CanvasWalkthrough';
 export function LinkClasses() {
   const [canvasKey, setCanvasKey] = useState("");
   const [canvasLinked, setCanvasLinked] = useState(false);
@@ -36,6 +36,7 @@ export function LinkClasses() {
 
   return (
     <div className="w-full">
+      <CanvasWalkthrough />
       {!canvasLinked || showInput ? (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label htmlFor="canvasKey" className="text-lg font-semibold text-white">
