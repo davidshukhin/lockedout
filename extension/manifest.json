@@ -4,18 +4,20 @@
     "version": "1.0",
     "description": "Blocks distracting websites.",
     "permissions": [
-      "tabs",
-      "webRequest",
-      "declarativeNetRequest",
-      "declarativeNetRequestWithHostAccess",
       "storage",
-      "alarms"
+      "alarms",
+      "declarativeNetRequest",
+      "declarativeNetRequestFeedback",
+      "identity"
     ],
     "background": {
       "service_worker": "background.js",
       "type": "module"
     },
-    "host_permissions": ["<all_urls>"],
+    "host_permissions": [
+      "<all_urls>",
+      "http://localhost:3000/*"
+    ],
     "action": {
       "default_popup": "popup.html",
       "default_icon": "icon.png"
@@ -24,6 +26,13 @@
       "16": "icon.png",
       "48": "icon.png",
       "128": "icon.png"
+    },
+    "declarative_net_request": {
+      "rule_resources": [{
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }]
     }
   }
   

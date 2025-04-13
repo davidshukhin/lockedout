@@ -7,19 +7,49 @@ console.log("[BACKGROUND] Starting background script.");
 let supabase = null;
 
 // Initialize Supabase client from storage
-chrome.storage.local.get(['SUPABASE_URL', 'SUPABASE_ANON_KEY'], (result) => {
+chrome.storage.local.get(['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SESSION'], async (result) => {
   if (!result.SUPABASE_URL || !result.SUPABASE_ANON_KEY) {
     console.error("[BACKGROUND] Missing Supabase configuration!");
     return;
   }
 
-  // Create a Supabase client instance.
-  supabase = createClient(result.SUPABASE_URL, result.SUPABASE_ANON_KEY);
-  console.log("[BACKGROUND] Supabase client created.");
+  try {
+    // Create a Supabase client instance
+    supabase = createClient(result.SUPABASE_URL, result.SUPABASE_ANON_KEY);
+    console.log("[BACKGROUND] Supabase client created.");
 
-  // Initial fetch on extension startup.
-  console.log("[BACKGROUND] Initiating initial fetchBlockedDomains call.");
-  fetchBlockedDomains();
+    // Check for stored session
+    if (result.SUPABASE_SESSION) {
+      console.log("[BACKGROUND] Found stored session");
+      const { data: { session }, error } = await supabase.auth.setSession(result.SUPABASE_SESSION);
+      if (error) {
+        console.error("[BACKGROUND] Error setting session:", error);
+        return;
+      }
+      if (session) {
+        console.log("[BACKGROUND] Session restored successfully");
+        await fetchBlockedDomains();
+      }
+    } else {
+      console.log("[BACKGROUND] No stored session found");
+    }
+
+    // Set up auth state change listener
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[AUTH] Auth state changed:", event, session);
+      if (event === 'SIGNED_IN' && session) {
+        // Store the session
+        chrome.storage.local.set({ SUPABASE_SESSION: session });
+        fetchBlockedDomains();
+      } else if (event === 'SIGNED_OUT') {
+        // Clear the session
+        chrome.storage.local.remove('SUPABASE_SESSION');
+      }
+    });
+
+  } catch (error) {
+    console.error("[BACKGROUND] Error during initialization:", error);
+  }
 });
 
 // Global variable for the list of domains to block.
@@ -69,143 +99,117 @@ async function checkAssignments() {
 async function fetchBlockedDomains() {
   console.log("[FETCH] Running fetchBlockedDomains() ...");
   try {
-    // Retrieve the current session from Supabase auth.
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-    console.log("[FETCH] Session retrieval complete:", session);
-
-    if (sessionError || !session || !session.user || !session.user.id) {
-      console.error("[FETCH] User session not found or error retrieving session:", sessionError);
-      return;
-    }
-    const userId = session.user.id;
-    console.log("[FETCH] User ID:", userId);
-
-    // Check if the user has a current assignment in the 'current_assignments' table.
-    console.log("[FETCH] Querying 'current_assignments' table for user:", userId);
-    const {
-      data: assignmentData,
-      error: assignmentError,
-    } = await supabase
-      .from('current_assignments')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle(); // Expect a single row or null
-
-    if (assignmentError) {
-      console.error("[FETCH] Error fetching current assignment:", assignmentError);
-      return;
-    }
-    
-    if (!assignmentData) {
-      console.log("[FETCH] No current assignment found for user, disabling blocking.");
-      blockedDomains = [];
-      return;
-    }
-    console.log("[FETCH] Current assignment found:", assignmentData);
-
-    // Check if the assignment has been submitted.
-    console.log("[FETCH] Checking if assignment has been submitted...");
-    const submitted = await checkAssignments();
-    console.log("[FETCH] Assignment submission status:", submitted);
-
-    if (submitted) {
-      console.log("[FETCH] Assignment already submitted, disabling blocking.");
-      blockedDomains = [];
+    if (!supabase) {
+      console.error("[FETCH] Supabase client not initialized");
       return;
     }
 
-    // If we reach here, the user has an active assignment that has not yet been submitted.
-    console.log("[FETCH] User has an active, not-submitted assignment. Fetching block list...");
-    // Now fetch the user's block list from the 'user_blocklists' table.
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error("[FETCH] Error getting session:", sessionError);
+      return;
+    }
+
+    if (!session || !session.user || !session.user.id) {
+      console.log("[FETCH] No active user session");
+      return;
+    }
+
     const { data, error } = await supabase
-      .from('user_blocklists')
-      .select('block_list')
-      .eq('user_id', userId)
-      .single(); // Because user_id is unique.
+      .from('blocked_domains')
+      .select('domain')
+      .eq('user_id', session.user.id);
 
     if (error) {
       console.error("[FETCH] Error fetching blocked domains:", error);
       return;
     }
 
-    if (data && data.block_list) {
-      blockedDomains = data.block_list;
-      console.log("[FETCH] Blocked domains updated:", blockedDomains);
-    } else {
-      console.log("[FETCH] No block list found for user:", userId);
-    }
+    const domains = data.map(item => item.domain);
+    await updateBlockingRules(domains);
+    blockedDomains = domains;
+    console.log("[FETCH] Updated blocked domains:", domains);
   } catch (e) {
     console.error("[FETCH] Exception while fetching blocked domains:", e);
   }
 }
 
-// Use Chrome Alarms API to refresh the block list (and current assignment status) periodically (every 60 minutes).
-chrome.alarms.create('refreshBlockedDomains', { periodInMinutes: 60 });
-console.log("[ALARM] Alarm 'refreshBlockedDomains' created to run every 60 minutes.");
-
-chrome.alarms.onAlarm.addListener((alarm) => {
-  console.log("[ALARM] Alarm triggered:", alarm.name);
-  if (alarm.name === 'refreshBlockedDomains') {
-    console.log("[ALARM] Refreshing block list via fetchBlockedDomains()");
-    fetchBlockedDomains();
+// Listen for changes to the block list in storage
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local' && changes.BLOCK_LIST) {
+    const newBlockList = changes.BLOCK_LIST.newValue || [];
+    updateBlockingRules(newBlockList);
   }
 });
 
-/**
- * Listener to intercept network requests. If a URL matches any domain from the blockedDomains array,
- * and blocking is enabled (i.e. blockedDomains is not empty), redirect the user to the custom blocked page.
- */
-chrome.webRequest.onBeforeRequest.addListener(
-  (details) => {
-    // Log the URL before checking.
-    console.log("[WEBREQUEST] Intercepted URL:", details.url);
-    if (
-      blockedDomains.length > 0 &&
-      blockedDomains.some((domain) => details.url.includes(domain))
-    ) {
-      console.log("[WEBREQUEST] Blocked URL detected:", details.url);
-      // Redirect to the extension's local blocked page.
-      return { redirectUrl: chrome.runtime.getURL('blocked.html') };
+// Check for updates to the block list periodically
+chrome.alarms.create('refreshBlockList', { periodInMinutes: 5 });
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'refreshBlockList') {
+    checkAuthAndUpdateBlockList();
+  }
+});
+
+async function checkAuthAndUpdateBlockList() {
+  try {
+    // Check auth session
+    const res = await fetch("http://localhost:3000/api/auth/session", {
+      credentials: "include"
+    });
+    const session = await res.json();
+
+    if (session && session.user) {
+      // Fetch latest block list
+      const blockListRes = await fetch("http://localhost:3000/api/blocklist", {
+        credentials: "include"
+      });
+      const blockListData = await blockListRes.json();
+      
+      // Update storage and rules
+      if (blockListData.blockList) {
+        chrome.storage.local.set({ BLOCK_LIST: blockListData.blockList });
+        await updateBlockingRules(blockListData.blockList);
+      }
     }
-    // Allow the request if it doesn't match any blocked domain.
-    return {};
-  },
-  {
-    urls: ['<all_urls>'] // Monitor all main_frame navigations.
-  },
-  ['blocking']
-);
+  } catch (err) {
+    console.error("Failed to update block list:", err);
+  }
+}
 
 /**
  * Updates the blocking rules.
- * @param {string[]} blockList - An array of domain strings.
+ * @param {string[]} domains - An array of domain strings to block.
  */
-function updateBlockingRules(blockList) {
-  console.log("[RULES] Updating blocking rules with blockList:", blockList);
-  const rules = blockList.map((domain, index) => ({
+async function updateBlockingRules(domains) {
+  const rules = domains.map((domain, index) => ({
     id: index + 1,
     priority: 1,
-    action: /** @type {chrome.declarativeNetRequest.RuleAction} */ ({ type: "block" }),
+    action: {
+      type: "redirect",
+      redirect: {
+        extensionPath: "/blocked.html"
+      }
+    },
     condition: {
       urlFilter: domain,
-      resourceTypes: /** @type {chrome.declarativeNetRequest.ResourceType[]} */ (["main_frame"]),
+      resourceTypes: ["main_frame"]
     }
   }));
 
-  chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: rules.map(rule => rule.id),
-    addRules: rules,
-  }, () => {
-    if (chrome.runtime.lastError) {
-      console.error("[RULES] Error updating rules:", chrome.runtime.lastError);
-    } else {
-      console.log("[RULES] Blocking rules updated successfully.");
-    }
-  });
+  try {
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: Array.from({ length: 100 }, (_, i) => i + 1), // Remove all existing rules
+      addRules: rules
+    });
+    console.log("Updated blocking rules:", rules);
+  } catch (err) {
+    console.error("Failed to update blocking rules:", err);
+  }
 }
+
+// Initial check
+checkAuthAndUpdateBlockList();
 
 // Example polling every 5 minutes (commented out):
 // async function syncBlockList() {
