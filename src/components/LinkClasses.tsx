@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -10,6 +8,7 @@ export function LinkClasses() {
   const [canvasKey, setCanvasKey] = useState("");
   const [canvasLinked, setCanvasLinked] = useState(false);
   const [showInput, setShowInput] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const setAssignments = useAssignmentStore((state) => state.setAssignments);
   const saveKey = api.canvas.saveKey.useMutation({
@@ -23,8 +22,11 @@ export function LinkClasses() {
   useEffect(() => {
     const existingKey = localStorage.getItem("canvasKey");
     if (existingKey) {
+      setIsLoading(true);
       setCanvasKey(existingKey);
-      saveKey.mutate({ canvasKey: existingKey });
+      saveKey.mutate({ canvasKey: existingKey }, {
+        onSettled: () => setIsLoading(false)
+      });
     }
   }, []);
 
@@ -36,8 +38,12 @@ export function LinkClasses() {
 
   return (
     <div className="w-full">
-      {!canvasLinked || showInput ? (
-        <div >
+      {isLoading ? (
+        <div className="flex justify-center items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
+      ) : !canvasLinked || showInput ? (
+        <div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-4">
             <label htmlFor="canvasKey" className="text-lg font-semibold text-white">
               Canvas Access Key
