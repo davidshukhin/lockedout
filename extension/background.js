@@ -134,6 +134,53 @@ async function fetchBlockedDomains() {
   }
 }
 
+/**
+ * Updates the blocking rules.
+ * @param {string[]} domains - An array of domain strings to block.
+ */
+async function updateBlockingRules(domains) {
+  try {
+    // First, get existing rules to properly clean up
+    const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+    const existingRuleIds = existingRules.map(rule => rule.id);
+
+    // Create new rules
+    const rules = domains.map((domain, index) => {
+      // Clean the domain (remove protocol, www, etc)
+      const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').trim();
+      
+      return {
+        id: index + 1,
+        priority: 2, // Higher priority than static rules
+        action: {
+          type: "redirect",
+          redirect: {
+            url: chrome.runtime.getURL("/blocked.html")
+          }
+        },
+        condition: {
+          domains: [cleanDomain],
+          urlFilter: "*",
+          resourceTypes: ["main_frame"]
+        }
+      };
+    });
+
+    // Update the rules
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: existingRuleIds,
+      addRules: rules
+    });
+    
+    // Log the current state of all rules
+    const allRules = await chrome.declarativeNetRequest.getDynamicRules();
+    console.log("Current blocking rules:", allRules);
+    
+  } catch (err) {
+    console.error("Failed to update blocking rules:", err);
+  }
+}
+
 // Listen for changes to the block list in storage
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'local' && changes.BLOCK_LIST) {
@@ -174,51 +221,6 @@ async function checkAuthAndUpdateBlockList() {
     }
   } catch (err) {
     console.error("Failed to update block list:", err);
-  }
-}
-
-/**
- * Updates the blocking rules.
- * @param {string[]} domains - An array of domain strings to block.
- */
-async function updateBlockingRules(domains) {
-  const rules = domains.map((domain, index) => {
-    // Clean the domain (remove protocol, www, etc)
-    const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').trim();
-    
-    return {
-      id: index + 1,
-      priority: 1,
-      action: {
-        type: "redirect",
-        redirect: {
-          extensionPath: "/blocked.html"
-        }
-      },
-      condition: {
-        // Match both www and non-www versions, http and https
-        urlFilter: `||${cleanDomain}`,
-        resourceTypes: ["main_frame", "sub_frame"],
-        // Don't block extension pages
-        excludedInitiatorDomains: [chrome.runtime.id]
-      }
-    };
-  });
-
-  try {
-    // First, get existing rules to properly clean up
-    const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-    const existingRuleIds = existingRules.map(rule => rule.id);
-
-    // Update the rules
-    await chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: existingRuleIds,
-      addRules: rules
-    });
-    
-    console.log("Successfully updated blocking rules for domains:", domains);
-  } catch (err) {
-    console.error("Failed to update blocking rules:", err);
   }
 }
 
