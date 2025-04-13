@@ -244,7 +244,7 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
       </ul>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[280px] p-6 mx-auto">
+        <DialogContent className="w-[400px] p-6 mx-auto">
           <DialogHeader>
             <DialogTitle className="text-center">Ready to lock in?</DialogTitle>
             <p className="text-sm text-muted-foreground text-center">
