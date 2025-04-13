@@ -88,7 +88,7 @@ export async function saveCanvasKey(canvasKey: string) {
    * @param courseId The ID of the course to retrieve assignments for.
    */
   async function getAssignments(headers: HeadersInit, courseId: number): Promise<any[]> {
-    const initialUrl = `${CANVAS_API_URL}/courses/${courseId}/assignments?per_page=100&include[]=submission`;
+    const initialUrl = `${CANVAS_API_URL}/courses/${courseId}/assignments?include[]=submission&include[]=all_dates&per_page=100`;
     let assignments: any[] = [];
     try {
       let response = await fetch(initialUrl, { headers });

@@ -64,7 +64,7 @@ type CurrentAssignmentRow = {
   }
   
 
-async function checkAssignments() : Promise<boolean>{
+export async function checkAssignments() : Promise<boolean>{
     const user_assignments = await fetchUserAssignments();
     for (const assignment of user_assignments){
         if (await fetchHasSubmitted(assignment[1], assignment[0])){
@@ -81,3 +81,4 @@ async function checkAssignments() : Promise<boolean>{
     const remaining = await fetchUserAssignments();
     return remaining.length === 0;
 }
+  
