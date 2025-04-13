@@ -104,12 +104,6 @@ async function checkAssignments() {
   }
 }
 
-// Add an immediate check when the extension loads
-console.log("[BACKGROUND] Initial assignment check...");
-checkAssignments().then(shouldBlock => {
-  console.log("[BACKGROUND] Initial assignment check result:", shouldBlock);
-});
-
 // Set up periodic checks more frequently (every minute)
 chrome.alarms.create('checkAssignments', { periodInMinutes: 1 });
 
@@ -118,8 +112,22 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     console.log("[ALARM] Running periodic assignment check...");
     checkAssignments().then(shouldBlock => {
       console.log("[ALARM] Periodic assignment check result:", shouldBlock);
+      // Actually update the blocking rules when assignment status changes
+      fetchBlockedDomains(); // This will clear or set rules based on assignment status
     });
   }
+  // Keep the existing refreshBlockList alarm handler
+  else if (alarm.name === 'refreshBlockList') {
+    checkAuthAndUpdateBlockList();
+  }
+});
+
+// Also modify the initial check to actually update rules
+console.log("[BACKGROUND] Initial assignment check...");
+checkAssignments().then(shouldBlock => {
+  console.log("[BACKGROUND] Initial assignment check result:", shouldBlock);
+  // Update blocking rules on initial check
+  fetchBlockedDomains();
 });
 
 /**
