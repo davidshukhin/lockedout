@@ -156,14 +156,18 @@ export async function saveCanvasKey(canvasKey: string) {
       if (!assignments.length) {
         console.log("  No assignments found.");
       } else {
-        // Filter assignments for published ones with valid due dates and non-empty submission types.
+        // Filter assignments for published ones with val
+        const oneDayAgo = new Date();
+        oneDayAgo.setDate(oneDayAgo.getDate() - 7);
+
         const filteredAssignments = assignments.filter((assignment: any) =>
           assignment.published &&
           assignment.submission_types &&
-          // Check that submission_types array is not just ['none']
           JSON.stringify(assignment.submission_types) !== JSON.stringify(["none"]) &&
-          assignment.due_at != null
+          assignment.due_at &&
+          new Date(assignment.due_at) > oneDayAgo
         );
+
 
         for (const assignment of filteredAssignments) {
           

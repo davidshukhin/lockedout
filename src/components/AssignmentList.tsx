@@ -54,7 +54,7 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
           }
         });
     }
-  }, [open, session?.user?.id]); // 👈 updated deps
+  }, [open, session?.user?.id]);
 
 
 
@@ -82,35 +82,36 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
         ))}
       </ul>
 
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Assign Block Rule</DialogTitle>
+            <DialogTitle>Ready to lock in?</DialogTitle>
             <DialogDescription>
-              Select a rule for <strong>{selectedAssignment?.name}</strong>
-
-
+              Your blocked rules will go into effect.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col gap-2">
-            {blockRules.map(rule => (
-              <button
-                key={rule.id}
-                className="rounded border border-gray-300 px-4 py-2 text-left hover:bg-gray-100"
-                onClick={() => {
-                  // Save logic here
-                  toast("Time to lock in")
 
-                  setOpen(false);
-                }}
-              >
-                <div className="font-medium">{rule.name}</div>
-                {rule.description && (
-                  <div className="text-sm text-gray-500">{rule.description}</div>
-                )}
-              </button>
-            ))}
+          <div className="mt-4 flex justify-end gap-4">
+            <button
+              onClick={() => {
+                toast("Rules locked in for this assignment!");
+                setOpen(false);
+              }}
+              className="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            >
+              Yes
+            </button>
+            <button
+              onClick={() => {
+                toast("Action canceled");
+                setOpen(false);
+              }}
+              className="rounded-md bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
+            >
+              No
+            </button>
           </div>
         </DialogContent>
       </Dialog>
