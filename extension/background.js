@@ -78,6 +78,8 @@ async function checkAssignments() {
       .select("*")
       .eq("user_id", session.data.session.user.id);
 
+    console.log("[CHECK] Assignments:", assignments);
+
     if (error) {
       console.error("[CHECK] Error fetching assignments:", error);
       return true; // Assume no active assignments on error
