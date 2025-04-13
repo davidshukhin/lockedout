@@ -8,7 +8,8 @@
       "alarms",
       "declarativeNetRequest",
       "declarativeNetRequestFeedback",
-      "tabs"
+      "tabs",
+      "webNavigation"
     ],
     "background": {
       "service_worker": "background.js",
