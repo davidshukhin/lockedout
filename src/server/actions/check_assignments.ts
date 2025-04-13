@@ -21,7 +21,7 @@ async function fetchUserAssignments(userId: string): Promise<[number, number][]>
   const { data, error } = await supabase
     .from("current_assignments")
     .select("assignment_id, course_id")
-    .eq("access_key", userId)
+    .eq("user_id", userId)
     .lte("scheduled_time", new Date().toISOString());
 
   if (error || !data) {

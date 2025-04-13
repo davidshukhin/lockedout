@@ -131,6 +131,15 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 async function fetchBlockedDomains() {
   console.log("[FETCH] Running fetchBlockedDomains() ...");
   try {
+    // Check assignments first - only proceed if we should block
+    const shouldBlock = await checkAssignments();
+    if (!shouldBlock) {
+      console.log("[FETCH] No active assignments, clearing block list");
+      blockedDomains = [];
+      await updateBlockingRules([]);
+      return;
+    }
+
     if (!supabase) {
       console.error("[FETCH] Supabase client not initialized");
       return;
@@ -144,16 +153,6 @@ async function fetchBlockedDomains() {
 
     if (!session || !session.user || !session.user.id) {
       console.log("[FETCH] No active user session");
-      return;
-    }
-
-    // Check assignments first - only block if there are active assignments
-    const hasActiveAssignments = await checkAssignments();
-    
-    if (!hasActiveAssignments) {
-      console.log("[FETCH] No active assignments, clearing block list");
-      blockedDomains = [];
-      await updateBlockingRules([]);
       return;
     }
 
@@ -196,7 +195,23 @@ async function updateBlockingRules(domains) {
   console.log("[RULES] Updating blocking rules for domains:", domains);
   
   try {
-    // First, get existing rules to properly clean up
+    // First check if we should be blocking at all
+    const shouldBlock = await checkAssignments();
+    if (!shouldBlock) {
+      console.log("[RULES] No active assignments, clearing all blocking rules");
+      // Get existing rules to remove them
+      const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+      const existingRuleIds = existingRules.map(rule => rule.id);
+      
+      // Remove all existing rules
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: existingRuleIds
+      });
+      console.log("[RULES] All blocking rules cleared");
+      return;
+    }
+
+    // If we should block, proceed with normal rule updates
     const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
     const existingRuleIds = existingRules.map(rule => rule.id);
     
@@ -213,9 +228,8 @@ async function updateBlockingRules(domains) {
       return;
     }
 
-    // Create new rules - one rule per domain with a simple pattern
+    // Create new rules only if we have domains AND should be blocking
     const rules = domains.map((domain, index) => {
-      // Clean the domain (remove protocol, www, etc)
       const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').trim();
       console.log(`[RULES] Creating rule for domain: ${cleanDomain}`);
       
@@ -229,39 +243,20 @@ async function updateBlockingRules(domains) {
           }
         },
         condition: {
-          // Simpler URL pattern that matches the domain anywhere in the hostname
           urlFilter: `||${cleanDomain}`,
           resourceTypes: [chrome.declarativeNetRequest.ResourceType.MAIN_FRAME]
         }
       };
     });
 
-    console.log("[RULES] Created rules:", JSON.stringify(rules, null, 2));
-    
-    // Add new rules
-    await chrome.declarativeNetRequest.updateDynamicRules({
-      addRules: rules
-    });
-    
-    // Verify the rules were added
-    const allRules = await chrome.declarativeNetRequest.getDynamicRules();
-    console.log("[RULES] Current blocking rules:", JSON.stringify(allRules, null, 2));
-    
-    // Test if rules match example URLs
-    for (const domain of domains) {
-      const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').trim();
-      const testUrl = `https://www.${cleanDomain}`;
-      console.log(`[RULES] Testing URL pattern for ${testUrl}`);
-      
-      const matchedRules = await chrome.declarativeNetRequest.getMatchedRules({
-        urlFilter: testUrl
+    if (rules.length > 0) {
+      console.log("[RULES] Adding new blocking rules:", JSON.stringify(rules, null, 2));
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        addRules: rules
       });
-      console.log(`[RULES] Matched rules for ${testUrl}:`, matchedRules);
     }
   } catch (err) {
     console.error("[RULES] Failed to update blocking rules:", err);
-    console.error("[RULES] Error details:", err.message);
-    if (err.stack) console.error("[RULES] Stack trace:", err.stack);
   }
 }
 
