@@ -4,4 +4,5 @@ export type Assignment = {
   course: string;
   id: number;
   course_id: number;
+  assignment_id?: number; // For current assignments table
 }
