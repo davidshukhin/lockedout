@@ -747,3 +747,104 @@ chrome.storage.local.get(['blockCount'], (result) => {
   chrome.storage.local.set({ blockCount: count });
   if (blockCount) blockCount.textContent = count.toString();
 });
+
+// Get URL parameters once at the start
+const urlParams = new URLSearchParams(window.location.search);
+const blockedUrl = urlParams.get('url');
+
+async function checkAssignmentStatus() {
+    try {
+        console.log("[BLOCKED] Checking assignment status...");
+        const timestamp = new Date().getTime();
+        const response = await fetch(`http://localhost:3000/api/check-assignments?t=${timestamp}`, {
+            credentials: "include",
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache',
+                'Origin': chrome.runtime.getURL('')
+            },
+            mode: 'cors'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("[BLOCKED] Assignment check response:", data);
+        
+        // API returns true when all assignments are submitted (meaning we should NOT block)
+        // So we need to return the opposite of what the API returns
+        return !data.allSubmitted; // Return true if we should block
+    } catch (error) {
+        console.error('[BLOCKED] Error checking assignments:', error);
+        const loadingSection = document.getElementById('loadingSection');
+        if (loadingSection) {
+            loadingSection.innerHTML = `
+                <h2>Error Checking Assignments</h2>
+                <p>There was an error checking your assignment status. Please try again.</p>
+                <p class="error-details">Make sure you're logged in to continue</p>
+                <button class="btn" id="loginButton">Log In</button>
+                <button class="btn" id="retryButton">Try Again</button>
+            `;
+            const retryButton = document.getElementById('retryButton');
+            if (retryButton) {
+                retryButton.addEventListener('click', handleLoadingState);
+            }
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.addEventListener('click', () => {
+                    window.location.href = 'http://localhost:3000/auth/signin';
+                });
+            }
+        }
+        return true; // Default to blocked on error
+    }
+}
+
+async function handleLoadingState() {
+    console.log("[BLOCKED] Starting check...");
+    const loadingSection = document.getElementById('loadingSection');
+    const blockedSection = document.getElementById('blockedSection');
+    
+    if (!loadingSection || !blockedSection) {
+        console.error("[BLOCKED] Required DOM elements not found");
+        return;
+    }
+    
+    // Show loading state
+    loadingSection.classList.add('active');
+    blockedSection.classList.remove('active');
+    
+    try {
+        const shouldBlock = await checkAssignmentStatus();
+        console.log("[BLOCKED] Should block?", shouldBlock);
+        
+        if (!shouldBlock && blockedUrl) {
+            console.log("[BLOCKED] No need to block, redirecting to:", blockedUrl);
+            // Use window.location.replace to prevent back button from returning to blocked page
+            window.location.replace('https://' + blockedUrl);
+            return;
+        }
+        
+        // If we get here, we should show blocked content
+        console.log("[BLOCKED] Showing blocked content");
+        loadingSection.classList.remove('active');
+        blockedSection.classList.add('active');
+    } catch (error) {
+        console.error('[BLOCKED] Error:', error);
+        // Error state is handled in checkAssignmentStatus()
+    }
+}
+
+// Start checking when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("[BLOCKED] Page loaded, starting check...");
+    handleLoadingState();
+    
+    // Set up recheck button listener
+    const recheckButton = document.getElementById('recheckButton');
+    if (recheckButton) {
+        recheckButton.addEventListener('click', handleLoadingState);
+    }
+});

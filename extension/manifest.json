@@ -1,23 +1,21 @@
 {
     "manifest_version": 3,
-    "name": "LockedOut Chrome Extension",
+    "name": "Assignment Blocker",
     "version": "1.0",
-    "description": "Blocks distracting websites.",
+    "description": "Blocks distracting sites until assignments are completed",
     "permissions": [
       "storage",
-      "alarms",
       "declarativeNetRequest",
-      "declarativeNetRequestFeedback",
+      "webNavigation",
       "tabs",
-      "webNavigation"
+      "alarms"
     ],
     "background": {
-      "service_worker": "background.js",
-      "type": "module"
+      "service_worker": "background.js"
     },
     "host_permissions": [
-      "<all_urls>",
-      "http://localhost:3000/*"
+      "http://localhost:3000/*",
+      "<all_urls>"
     ],
     "action": {
       "default_popup": "popup.html",
@@ -35,8 +33,14 @@
         "path": "rules.json"
       }]
     },
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'"
+    },
+    "externally_connectable": {
+      "matches": ["http://localhost:3000/*"]
+    },
     "web_accessible_resources": [{
-      "resources": ["blocked.html", "blocked.css", "blocked.js"],
+      "resources": ["blocked.html", "blocked.js"],
       "matches": ["<all_urls>"]
     }]
   }

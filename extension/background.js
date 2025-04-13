@@ -14,11 +14,7 @@ chrome.storage.local.get(['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SESSION
   }
 
   try {
-    // Load the Supabase client script
-    await import('./lib/supabase.js');
-    
-    // Create a Supabase client instance
-    // @ts-ignore - Supabase is loaded globally
+    // Create a Supabase client instance directly (no dynamic import)
     supabase = supabaseJs.createClient(result.SUPABASE_URL, result.SUPABASE_ANON_KEY);
     console.log("[BACKGROUND] Supabase client created.");
 
@@ -75,8 +71,10 @@ async function checkAssignments() {
       credentials: "include",
       headers: {
         'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
-      }
+        'Cache-Control': 'no-cache',
+        'Origin': chrome.runtime.getURL('')
+      },
+      mode: 'cors'
     });
 
     if (!response.ok) {
@@ -88,15 +86,13 @@ async function checkAssignments() {
     }
 
     const data = await response.json();
-    console.log("[CHECK] Assignment check response:", {
-      shouldBlock: data.shouldBlock,
-      message: data.message,
-      fullResponse: data
-    });
+    console.log("[CHECK] Assignment check response:", data);
 
-    // Add a test call to verify it's working
-    console.log("[CHECK] Test - calling checkAssignments directly");
-    return data.shouldBlock;
+    // API returns true when all assignments are submitted (meaning we should NOT block)
+    // So we need to return the opposite of what the API returns
+    const shouldBlock = !data.allSubmitted;
+    console.log("[CHECK] Should block based on assignments?", shouldBlock);
+    return shouldBlock;
   } catch (e) {
     console.error("[CHECK] Exception while checking assignments:", e);
     console.error("[CHECK] Stack trace:", e.stack);
@@ -104,8 +100,19 @@ async function checkAssignments() {
   }
 }
 
-// Set up periodic checks more frequently (every minute)
-chrome.alarms.create('checkAssignments', { periodInMinutes: 1 });
+// Listen for messages from the API about new assignments
+chrome.runtime.onMessageExternal.addListener(
+  async function(request, sender, sendResponse) {
+    if (request.type === 'ASSIGNMENT_ADDED') {
+      console.log("[BACKGROUND] New assignment added, updating rules immediately");
+      await fetchBlockedDomains(); // Immediate update of block rules
+      sendResponse({status: 'ok'});
+    }
+  }
+);
+
+// Make checks much more frequent (every 5 seconds instead of 15)
+chrome.alarms.create('checkAssignments', { periodInMinutes: 0.083 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === 'checkAssignments') {
@@ -137,13 +144,11 @@ checkAssignments().then(shouldBlock => {
  * Otherwise, blockedDomains is cleared to disable blocking.
  */
 async function fetchBlockedDomains() {
-  console.log("[FETCH] Running fetchBlockedDomains() ...");
+  console.log("[FETCH] Running immediate domain fetch...");
   try {
-    // Check assignments first - only proceed if we should block
     const shouldBlock = await checkAssignments();
     if (!shouldBlock) {
       console.log("[FETCH] No active assignments, clearing block list");
-      blockedDomains = [];
       await updateBlockingRules([]);
       return;
     }
@@ -153,13 +158,8 @@ async function fetchBlockedDomains() {
       return;
     }
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-      console.error("[FETCH] Error getting session:", sessionError);
-      return;
-    }
-
-    if (!session || !session.user || !session.user.id) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
       console.log("[FETCH] No active user session");
       return;
     }
@@ -170,109 +170,144 @@ async function fetchBlockedDomains() {
       .select('block_list')
       .eq('user_id', session.user.id)
       .single();
-      
 
     if (error) {
       console.error("[FETCH] Error fetching blocked domains:", error);
       return;
     }
 
-    if (!data || !data.block_list || data.block_list.length === 0) {
-      console.log("[FETCH] No blocked domains found in database");
-      blockedDomains = [];
+    if (!data?.block_list || data.block_list.length === 0) {
+      console.log("[FETCH] No blocked domains found");
       await updateBlockingRules([]);
       return;
     }
 
-    console.log("[FETCH] Found blocked domains in database:", data.block_list);
-    const domains = data.block_list;
-    
-    console.log("[FETCH] Processed domains for blocking:", domains);
-    blockedDomains = domains;
-    await updateBlockingRules(domains);
+    console.log("[FETCH] Applying immediate blocks for domains:", data.block_list);
+    await updateBlockingRules(data.block_list);
   } catch (e) {
     console.error("[FETCH] Exception while fetching blocked domains:", e);
   }
 }
 
-/**
- * Updates the blocking rules.
- * @param {string[]} domains - An array of domain strings to block.
- */
-async function updateBlockingRules(domains) {
-  console.log("[RULES] Updating blocking rules for domains:", domains);
-  
+// Add immediate rule application
+async function applyBlockingRules(domains) {
+  console.log("[RULES] Applying immediate blocking rules for domains:", domains);
   try {
-    // First check if we should be blocking at all
-    const shouldBlock = await checkAssignments();
-    if (!shouldBlock) {
-      console.log("[RULES] No active assignments, clearing all blocking rules");
-      // Get existing rules to remove them
-      const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-      const existingRuleIds = existingRules.map(rule => rule.id);
-      
-      // Remove all existing rules
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        removeRuleIds: existingRuleIds
-      });
-      console.log("[RULES] All blocking rules cleared");
-      return;
-    }
-
-    // If we should block, proceed with normal rule updates
+    // Remove existing rules first
     const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
     const existingRuleIds = existingRules.map(rule => rule.id);
     
-    console.log("[RULES] Removing existing rules:", existingRuleIds);
-
-    // Remove existing rules first
     await chrome.declarativeNetRequest.updateDynamicRules({
       removeRuleIds: existingRuleIds
     });
-    console.log("[RULES] Existing rules removed");
 
     if (!domains || domains.length === 0) {
-      console.log("[RULES] No domains to block, all rules cleared");
+      console.log("[RULES] No domains to block, rules cleared");
       return;
     }
 
-    // Create new rules only if we have domains AND should be blocking
-    const rules = domains.map((domain, index) => {
-      const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').trim();
-      console.log(`[RULES] Creating rule for domain: ${cleanDomain}`);
-      
-      return {
-        id: index + 1,
-        priority: 1,
-        action: {
-          type: chrome.declarativeNetRequest.RuleActionType.REDIRECT,
-          redirect: {
-            url: chrome.runtime.getURL("/blocked.html") + "?url=" + encodeURIComponent(cleanDomain)
-          }
-        },
-        condition: {
-          urlFilter: `||${cleanDomain}`,
-          resourceTypes: [chrome.declarativeNetRequest.ResourceType.MAIN_FRAME]
+    // Create and apply new rules immediately
+    const rules = domains.map((domain, index) => ({
+      id: index + 1,
+      priority: 1,
+      action: {
+        type: chrome.declarativeNetRequest.RuleActionType.REDIRECT,
+        redirect: {
+          url: chrome.runtime.getURL("/blocked.html") + "?url=" + encodeURIComponent(domain)
         }
-      };
-    });
+      },
+      condition: {
+        urlFilter: `||${domain}`,
+        resourceTypes: [chrome.declarativeNetRequest.ResourceType.MAIN_FRAME]
+      }
+    }));
 
-    if (rules.length > 0) {
-      console.log("[RULES] Adding new blocking rules:", JSON.stringify(rules, null, 2));
-      await chrome.declarativeNetRequest.updateDynamicRules({
-        addRules: rules
-      });
-    }
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      addRules: rules
+    });
+    console.log("[RULES] Rules applied immediately:", rules);
   } catch (err) {
-    console.error("[RULES] Failed to update blocking rules:", err);
+    console.error("[RULES] Error applying rules:", err);
   }
 }
 
-// Listen for changes to the block list in storage
-chrome.storage.onChanged.addListener((changes, namespace) => {
+// Modify updateBlockingRules to be more immediate
+async function updateBlockingRules(domains) {
+  console.log("[RULES] Updating blocking rules...");
+  
+  try {
+    const shouldBlock = await checkAssignments();
+    console.log("[RULES] Should block?", shouldBlock);
+
+    if (!shouldBlock) {
+      console.log("[RULES] No need to block, clearing rules");
+      await applyBlockingRules([]);
+      return;
+    }
+
+    console.log("[RULES] Applying immediate blocks");
+    await applyBlockingRules(domains);
+  } catch (err) {
+    console.error("[RULES] Error updating rules:", err);
+  }
+}
+
+// Add tab update listener with immediate blocking
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (changeInfo.status === 'loading' && tab.url) {
+    console.log("[TAB] Tab loading, checking immediately:", tab.url);
+    const shouldBlock = await checkAssignments();
+    if (shouldBlock) {
+      // Get the current block list and apply immediately
+      const storage = await chrome.storage.local.get(['BLOCK_LIST']);
+      const blockList = storage.BLOCK_LIST || [];
+      if (blockList.length > 0) {
+        console.log("[TAB] Applying immediate block");
+        await applyBlockingRules(blockList);
+      }
+    }
+  }
+});
+
+// Add navigation listener for immediate checks
+chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+  if (details.frameId === 0) { // Main frame only
+    console.log("[NAV] Navigation detected, checking immediately:", details.url);
+    const shouldBlock = await checkAssignments();
+    if (shouldBlock) {
+      const storage = await chrome.storage.local.get(['BLOCK_LIST']);
+      const blockList = storage.BLOCK_LIST || [];
+      if (blockList.length > 0) {
+        console.log("[NAV] Applying immediate block");
+        await applyBlockingRules(blockList);
+      }
+    }
+  }
+});
+
+// Listen for assignment updates from the server
+chrome.runtime.onMessageExternal.addListener(async (request, sender, sendResponse) => {
+  if (request.type === 'ASSIGNMENT_ADDED' || request.type === 'ASSIGNMENT_UPDATED') {
+    console.log("[EXTERNAL] Assignment update received, checking immediately");
+    const shouldBlock = await checkAssignments();
+    if (shouldBlock) {
+      const storage = await chrome.storage.local.get(['BLOCK_LIST']);
+      const blockList = storage.BLOCK_LIST || [];
+      if (blockList.length > 0) {
+        console.log("[EXTERNAL] Applying immediate block");
+        await applyBlockingRules(blockList);
+      }
+    }
+    sendResponse({ status: 'ok' });
+  }
+});
+
+// Add storage change listener for immediate updates
+chrome.storage.onChanged.addListener(async (changes, namespace) => {
   if (namespace === 'local' && changes.BLOCK_LIST) {
+    console.log("[STORAGE] Block list updated, applying immediately");
     const newBlockList = changes.BLOCK_LIST.newValue || [];
-    updateBlockingRules(newBlockList);
+    await updateBlockingRules(newBlockList);
   }
 });
 
