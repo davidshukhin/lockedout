@@ -60,7 +60,7 @@ export function AssignmentList({ title, assignments }: AssignmentListProps) {
 
   return (
     <div className="w-full">
-      {title && <h2 className="mb-4 text-xl font-bold">{title}</h2>}
+      {title && <h2 className="mb-4 text-2xl font-bold">{title}</h2>}
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {assignments.map((assignment, i) => (
           <li

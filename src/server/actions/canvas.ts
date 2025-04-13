@@ -176,6 +176,7 @@ export async function saveCanvasKey(canvasKey: string) {
             due_date: assignment.due_at as string,
             //lock_time: assignment.lock_at as string,
             course: courseName as string,
+            id: assignment.id as number
           }
           const turnedIn = assignment.has_submitted_submissions;
 
