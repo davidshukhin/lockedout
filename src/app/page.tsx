@@ -49,7 +49,7 @@ export default async function Home() {
           ) : (
             <div className="text-center">
               <h1 className="text-5xl font-extrabold tracking-tight mb-4">
-                Welcome to <span className="text-[hsl(280,100%,70%)]">Chicken Jockey</span>
+                Welcome to <span className="text-[hsl(280,100%,70%)]">Locked Out</span>
               </h1>
               <p className="text-lg text-white/80 mb-8">
                 Focus-first learning with assignment tracking and website blocking.

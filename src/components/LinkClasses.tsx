@@ -38,7 +38,7 @@ export function LinkClasses() {
     <div className="w-full">
       {!canvasLinked || showInput ? (
         <div >
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-4">
             <label htmlFor="canvasKey" className="text-lg font-semibold text-white">
               Canvas Access Key
             </label>
