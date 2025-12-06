@@ -1,47 +1,56 @@
 {
-    "manifest_version": 3,
-    "name": "Assignment Blocker",
-    "version": "1.0",
-    "description": "Blocks distracting sites until assignments are completed",
-    "permissions": [
-      "storage",
-      "declarativeNetRequest",
-      "webNavigation",
-      "tabs",
-      "alarms"
-    ],
-    "background": {
-      "service_worker": "background.js"
-    },
-    "host_permissions": [
-      "http://localhost:3000/*",
-      "<all_urls>"
-    ],
-    "action": {
-      "default_popup": "popup.html",
-      "default_icon": "icon.png"
-    },
-    "icons": {
-      "16": "icon.png",
-      "48": "icon.png",
-      "128": "icon.png"
-    },
-    "declarative_net_request": {
-      "rule_resources": [{
+  "manifest_version": 3,
+  "name": "Assignment Blocker",
+  "version": "1.0",
+  "description": "Blocks distracting sites until assignments are completed",
+  "permissions": [
+    "storage",
+    "declarativeNetRequest",
+    "webNavigation",
+    "alarms"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
         "id": "ruleset_1",
         "enabled": true,
         "path": "rules.json"
-      }]
-    },
-    "content_security_policy": {
-      "extension_pages": "script-src 'self'; object-src 'self'"
-    },
-    "externally_connectable": {
-      "matches": ["http://localhost:3000/*"]
-    },
-    "web_accessible_resources": [{
-      "resources": ["blocked.html", "blocked.js"],
-      "matches": ["<all_urls>"]
-    }]
-  }
-  
+      }
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:3000/*"
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "blocked.html",
+        "blocked.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}
