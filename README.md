@@ -1025,7 +1025,7 @@ Are you tired of focus apps that you can easily disable? Are you tired of procra
 This project requires the following dependencies:
 
 - **Programming Language:** TypeScript
-- **Package Manager:** Npm, Yarn
+- **Package Manager:** Yarn
 
 ### Installation
 
@@ -1046,27 +1046,8 @@ Build lockedout from the source and intsall dependencies:
 3. **Install the dependencies:**
 
 <!-- SHIELDS BADGE CURRENTLY DISABLED -->
-	<!-- [![npm][npm-shield]][npm-link] -->
-	<!-- REFERENCE LINKS -->
-	<!-- [npm-shield]: https://img.shields.io/badge/npm-CB3837.svg?style={badge_style}&logo=npm&logoColor=white -->
-	<!-- [npm-link]: https://www.npmjs.com/ -->
-
-	**Using [npm](https://www.npmjs.com/):**
-
-	```sh
-	❯ npm install
-	```
-<!-- SHIELDS BADGE CURRENTLY DISABLED -->
-	<!-- [![yarn][yarn-shield]][yarn-link] -->
-	<!-- REFERENCE LINKS -->
-	<!-- [yarn-shield]: None -->
-	<!-- [yarn-link]: None -->
-
-	**Using [yarn](None):**
-
-	```sh
 	❯ yarn install
-	```
+	
 
 ### Usage
 
@@ -1083,18 +1064,6 @@ Also, you need to go to extentions, go into developer mode, and select the "Load
 ## Roadmap
 
 - [X] **`Task 1`**: Implement a payment feature where you have to pay to unblock a site
-
----
-
-<details closed>
-<summary>Contributor Graph</summary>
-<br>
-<p align="left">
-   <a href="https://github.com{/davidshukhin/lockedout/}graphs/contributors">
-      <img src="https://contrib.rocks/image?repo=davidshukhin/lockedout">
-   </a>
-</p>
-</details>
 
 ---
 
