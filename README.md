@@ -10,7 +10,6 @@
 <em></em>
 
 <!-- BADGES -->
-<img src="https://img.shields.io/github/license/davidshukhin/lockedout?style=default&logo=opensourceinitiative&logoColor=white&color=0080ff" alt="license">
 <img src="https://img.shields.io/github/last-commit/davidshukhin/lockedout?style=default&logo=git&logoColor=white&color=0080ff" alt="last-commit">
 <img src="https://img.shields.io/github/languages/top/davidshukhin/lockedout?style=default&color=0080ff" alt="repo-top-language">
 <img src="https://img.shields.io/github/languages/count/davidshukhin/lockedout?style=default&color=0080ff" alt="repo-language-count">
@@ -46,7 +45,7 @@
 
 ## Overview
 
-
+Are you tired of focus apps that you can easily disable? Are you tired of Are you tired of not being able to get anthing done? Well, it's time to Lock you out so that you can LOCK IN. This is a fun project built by friends for people like us who struggle to focus and complete that one assignment "you will do tommorow". There is no time like the present and so we made an app that blocks your set websites until you finish a selected assignment. We look at your outstanding assignments in canvas and gradescope and allow you to schedule a time where you have no choice but to lock in. 
 
 ---
 
@@ -1072,7 +1071,7 @@ Build lockedout from the source and intsall dependencies:
 	**Using [yarn](None):**
 
 	```sh
-	❯ echo 'INSERT-INSTALL-COMMAND-HERE'
+	❯ yarn install
 	```
 
 ### Usage
@@ -1081,66 +1080,17 @@ Run the project with:
 
 **Using [npm](https://www.npmjs.com/):**
 ```sh
-npm start
-```
-**Using [yarn](None):**
-```sh
-echo 'INSERT-RUN-COMMAND-HERE'
+npm run dev
 ```
 
-### Testing
+Also, you need to go to extentions, go into developer mode, and select the "Load Unpacked" button in the top left. Then select the extention folder and you should now be able to use the extention
 
-Lockedout uses the {__test_framework__} test framework. Run the test suite with:
-
-**Using [npm](https://www.npmjs.com/):**
-```sh
-npm test
-```
-**Using [yarn](None):**
-```sh
-echo 'INSERT-TEST-COMMAND-HERE'
-```
-
----
 
 ## Roadmap
 
-- [X] **`Task 1`**: <strike>Implement feature one.</strike>
-- [ ] **`Task 2`**: Implement feature two.
-- [ ] **`Task 3`**: Implement feature three.
+- [X] **`Task 1`**: Implement a payment feature where you have to pay to unblock a site
 
 ---
-
-## Contributing
-
-- **💬 [Join the Discussions](https://github.com/davidshukhin/lockedout/discussions)**: Share your insights, provide feedback, or ask questions.
-- **🐛 [Report Issues](https://github.com/davidshukhin/lockedout/issues)**: Submit bugs found or log feature requests for the `lockedout` project.
-- **💡 [Submit Pull Requests](https://github.com/davidshukhin/lockedout/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
-
-<details closed>
-<summary>Contributing Guidelines</summary>
-
-1. **Fork the Repository**: Start by forking the project repository to your github account.
-2. **Clone Locally**: Clone the forked repository to your local machine using a git client.
-   ```sh
-   git clone https://github.com/davidshukhin/lockedout
-   ```
-3. **Create a New Branch**: Always work on a new branch, giving it a descriptive name.
-   ```sh
-   git checkout -b new-feature-x
-   ```
-4. **Make Your Changes**: Develop and test your changes locally.
-5. **Commit Your Changes**: Commit with a clear message describing your updates.
-   ```sh
-   git commit -m 'Implemented new feature x.'
-   ```
-6. **Push to github**: Push the changes to your forked repository.
-   ```sh
-   git push origin new-feature-x
-   ```
-7. **Submit a Pull Request**: Create a PR against the original project repository. Clearly describe the changes and their motivations.
-8. **Review**: Once your PR is reviewed and approved, it will be merged into the main branch. Congratulations on your contribution!
-</details>
 
 <details closed>
 <summary>Contributor Graph</summary>
@@ -1153,18 +1103,6 @@ echo 'INSERT-TEST-COMMAND-HERE'
 </details>
 
 ---
-
-## License
-
-Lockedout is protected under the [LICENSE](https://choosealicense.com/licenses) License. For more details, refer to the [LICENSE](https://choosealicense.com/licenses/) file.
-
----
-
-## Acknowledgments
-
-- Credit `contributors`, `inspiration`, `references`, etc.
-
-<div align="right">
 
 [![][back-to-top]](#top)
 
