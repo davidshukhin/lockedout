@@ -45,7 +45,7 @@
 
 ## Overview
 
-Are you tired of focus apps that you can easily disable? Are you tired of Are you tired of not being able to get anthing done? Well, it's time to Lock you out so that you can LOCK IN. This is a fun project built by friends for people like us who struggle to focus and complete that one assignment "you will do tommorow". There is no time like the present and so we made an app that blocks your set websites until you finish a selected assignment. We look at your outstanding assignments in canvas and gradescope and allow you to schedule a time where you have no choice but to lock in. 
+Are you tired of focus apps that you can easily disable? Are you tired of procrastinating and not being disciplined? Are you tired of not being able to get anthing done? Well, it's time to LOCK OUT so that you can LOCK IN. This is a fun project built by friends for people like us who struggle to focus and complete that one assignment "you will do tommorow". There is no time like the present and so we made an app that blocks your set websites until you finish a selected assignment. We look at your outstanding assignments in canvas and gradescope and allow you to schedule a time where you have no choice but to lock in. 
 
 ---
 
