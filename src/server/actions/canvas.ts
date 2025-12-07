@@ -3,8 +3,50 @@
 import { supabase } from "~/server/db";
 import { auth } from "~/server/auth";
 import type { Assignment } from "types/assignments";
-const CURRENT_TERM: number = 4710; // Set your desired current term here
+const CURRENT_TERM: number = 4713; // Set your desired current term here
 const CANVAS_API_URL: string = "https://umd.instructure.com/api/v1"; // Canvas API base URL for UMD
+
+/**
+ * Retrieve all active courses for the user and filter by the current term.
+ * @param headers HTTP headers including authorization
+ */
+export async function getCourses(headers: HeadersInit): Promise<any[]> {
+  const initialUrl = `${CANVAS_API_URL}/courses?enrollment_state=active&per_page=100`;
+  let courses: any[] = [];
+
+  try {
+    let response = await fetch(initialUrl, { headers });
+    if (!response.ok) {
+      console.error("Error fetching courses:", response.status, await response.text());
+      return courses;
+    }
+
+    courses = courses.concat(await response.json());
+
+    // Handle pagination if more courses are available.
+    let linkHeader = response.headers.get("link");
+    while (linkHeader) {
+      const links = parseLinkHeader(linkHeader);
+      if (!links["next"]) break;
+      const nextUrl = links["next"];
+      response = await fetch(nextUrl, { headers });
+      try {
+        courses = courses.concat(await response.json());
+      } catch (e) {
+        console.error("Error parsing JSON on pagination for courses:", e);
+        break;
+      }
+      linkHeader = response.headers.get("link");
+    }
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+  }
+
+  // Filter courses based on the current term.
+  const filteredCourses = courses.filter(course => course.enrollment_term_id === CURRENT_TERM);
+  return filteredCourses;
+}
+
 export async function saveCanvasKey(canvasKey: string) {
   const session = await auth();
   console.log(session?.user.id)
@@ -17,69 +59,6 @@ export async function saveCanvasKey(canvasKey: string) {
     access_token: canvasKey,
   });
 
-  /**
-   * Helper function to parse Link headers
-   * Example header:
-   *   <https://example.com/api/v1/courses?page=2>; rel="next", <https://example.com/api/v1/courses?page=3>; rel="last"
-   */
-  function parseLinkHeader(header: string): Record<string, string> {
-    const links: Record<string, string> = {};
-    const parts = header.split(',');
-    for (const part of parts) {
-      const section = part.split(';');
-      if (section.length < 2) continue;
-      const url = section[0]?.trim().replace(/^<(.+)>$/, '$1') || '';
-      const relMatch = section[1]?.trim().match(/rel="(.+)"/);
-      if (relMatch) {
-        const rel = relMatch[1];
-        if (rel) {
-          links[rel] = url;
-        }
-      }
-    }
-    return links;
-  }
-
-  /**
-   * Retrieve all active courses for the user and filter by the current term.
-   * @param headers HTTP headers including authorization
-   */
-  async function getCourses(headers: HeadersInit): Promise<any[]> {
-    const initialUrl = `${CANVAS_API_URL}/courses?enrollment_state=active&per_page=100`;
-    let courses: any[] = [];
-
-    try {
-      let response = await fetch(initialUrl, { headers });
-      if (!response.ok) {
-        console.error("Error fetching courses:", response.status, await response.text());
-        return courses;
-      }
-
-      courses = courses.concat(await response.json());
-
-      // Handle pagination if more courses are available.
-      let linkHeader = response.headers.get("link");
-      while (linkHeader) {
-        const links = parseLinkHeader(linkHeader);
-        if (!links["next"]) break;
-        const nextUrl = links["next"];
-        response = await fetch(nextUrl, { headers });
-        try {
-          courses = courses.concat(await response.json());
-        } catch (e) {
-          console.error("Error parsing JSON on pagination for courses:", e);
-          break;
-        }
-        linkHeader = response.headers.get("link");
-      }
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-    }
-
-    // Filter courses based on the current term.
-    const filteredCourses = courses.filter(course => course.enrollment_term_id === CURRENT_TERM);
-    return filteredCourses;
-  }
 
   /**
    * Retrieve all assignments for a given course.
@@ -202,4 +181,28 @@ export async function saveCanvasKey(canvasKey: string) {
   const { submitted, unsubmitted } = await getUserInfo(canvasKey);
   return unsubmitted;
 
-} 
+}
+
+
+/**
+ * Helper function to parse Link headers
+ * Example header:
+ *   <https://example.com/api/v1/courses?page=2>; rel="next", <https://example.com/api/v1/courses?page=3>; rel="last"
+ */
+function parseLinkHeader(header: string): Record<string, string> {
+  const links: Record<string, string> = {};
+  const parts = header.split(',');
+  for (const part of parts) {
+    const section = part.split(';');
+    if (section.length < 2) continue;
+    const url = section[0]?.trim().replace(/^<(.+)>$/, '$1') || '';
+    const relMatch = section[1]?.trim().match(/rel="(.+)"/);
+    if (relMatch) {
+      const rel = relMatch[1];
+      if (rel) {
+        links[rel] = url;
+      }
+    }
+  }
+  return links;
+}
