@@ -35,11 +35,7 @@
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
     - [Usage](#usage)
-    - [Testing](#testing)
 - [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
 
 ---
 
@@ -56,8 +52,6 @@ Are you tired of focus apps that you can easily disable? Are you tired of procra
 | ⚙️  | **Architecture**  | <ul><li>Monolithic architecture with multiple layers</li><li>Uses TypeScript for type safety and JavaScript for client-side logic</li></ul> |
 | 🔩 | **Code Quality**  | <ul><li>High code quality with a focus on maintainability and scalability</li><li>Utilizes ESLint and Prettier for code formatting and linting</li></ul> |
 | 🔌 | **Integrations**  | <ul><li>Integrated with various libraries and frameworks, including React, Next.js, Express, and Supabase</li><li>Uses Webpack for bundling and Babel for transpiling</li></ul> |
-| 🧩 | **Modularity**    | <ul><li>Monolithic architecture makes it difficult to separate concerns or reuse code</li><li>Lack of clear separation between presentation, business logic, and data access layers</li></ul> |
-| 🧪 | **Testing**       | <ul><li>No unit testing framework or tooling detected</li><li>Integration tests present in the codebase, but no clear testing strategy</li></ul> |
 | ⚡️  | **Performance**   | <ul><li>Uses caching and memoization to improve performance</li></ul> |
 | 🛡️ | **Security**      | <ul><li>Uses HTTPS and SSL/TLS encryption for secure data transmission</li></ul> |
 | 📦 | **Dependencies**  | <ul><li>Depends on a wide range of libraries and frameworks, including React, Next.js, Express, and Supabase</li></ul> |
